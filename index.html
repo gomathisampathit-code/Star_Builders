@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Star Builders</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--tx:#1d1f23;--mu:#6b7078;--ac:#0f6b5c;--acx:#fff;--rd:#b3261e;--bd:#e3e0d8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15171a;--card:#1f2226;--tx:#eceae4;--mu:#9aa0a8;--ac:#3fb8a2;--acx:#0b1210;--rd:#f2877f;--bd:#33373d}}
+:root[data-theme="dark"]{--bg:#15171a;--card:#1f2226;--tx:#eceae4;--mu:#9aa0a8;--ac:#3fb8a2;--acx:#0b1210;--rd:#f2877f;--bd:#33373d}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:90px}
+.wrap{max-width:640px;margin:auto;padding:12px}
+h1{font-size:18px;margin:0}
+.top{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+select,input,button{font:inherit;color:var(--tx)}
+select,input{width:100%;padding:11px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--card)}
+button{border:1px solid var(--bd);background:var(--card);border-radius:10px;padding:10px 14px;cursor:pointer}
+button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weight:600}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px}
+.c small{color:var(--mu);display:block;font-size:12px}.c b{font-size:16px}
+.tabs{display:flex;gap:6px;margin-bottom:10px}.tabs button{flex:1}.tabs .on{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+.row{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;gap:10px}
+.row .l{min-width:0}.row .t{font-weight:600}.row .s{color:var(--mu);font-size:13px;overflow-wrap:anywhere}
+.row .r{text-align:right;white-space:nowrap}.out{color:var(--rd)}.in{color:var(--ac)}
+.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));padding:14px 20px;border-radius:30px;box-shadow:0 4px 14px #0004}
+dialog{max-height:90vh;overflow:auto;border:1px solid var(--bd);border-radius:16px;background:var(--bg);color:var(--tx);width:min(94vw,520px);padding:16px}
+dialog::backdrop{background:#0008}
+label{display:block;font-size:13px;color:var(--mu);margin:10px 0 4px}
+.seg{display:flex;gap:6px}.seg button{flex:1}.seg .on{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+.acts{display:flex;gap:8px;margin-top:14px}.acts button{flex:1}
+.bar{height:6px;border-radius:3px;background:var(--ac);margin-top:4px;opacity:.8}
+.sec{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:10px}
+.sec h2{font-size:15px;margin:0 0 8px}.li{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd);font-size:14px}
+.li:last-child{border:0}.mu{color:var(--mu);font-size:13px}.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+body:not(.adm) #v2,body:not(.adm) #m9,body.adm #m10,body:not(.adm) #m1,body:not(.adm) #m2,body:not(.adm) #m3,body:not(.adm) #m4,body:not(.adm) #m5,body:not(.adm) #m6{display:none!important}
+#lock{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}#lock[hidden]{display:none}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}th{color:var(--mu);font-weight:600;white-space:nowrap}td.n,th.n{text-align:right;white-space:nowrap}tr.tt td{font-weight:700}
+details.sec>summary{cursor:pointer;font-size:15px;margin-bottom:8px}.pr{padding:7px 10px;font-size:13px}.rb{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.pa-row{background:rgba(245,166,35,.18)!important;border-color:#e8a317!important}tr.pa-row td{background:rgba(245,166,35,.2)}.pab{background:#e8a317;color:#1d1f23;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap}
+.menu button{width:100%;margin-bottom:8px;text-align:left}
+#toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:#1d1f23;color:#fff;padding:10px 16px;border-radius:20px;font-size:14px;z-index:99;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center}#toast.on{opacity:1}
+#sync{font-size:12px;cursor:pointer}body:not(.adm) #m11{display:none!important}
+</style></head><body>
+<div id="lock"><div class="sec" style="width:min(92vw,360px)"><h1 style="text-align:center">Star Builders</h1><label>Enter app password</label><input type="password" id="lp" autocomplete="off"><div id="le" class="out" style="min-height:20px;margin:6px 0"></div><button class="p" id="lb" style="width:100%">Open</button></div></div>
+<dialog id="adl"><b>Reports – admin password</b><label>Admin password</label><input type="password" id="ap" autocomplete="off"><div id="ae" class="out" style="min-height:20px;margin:6px 0"></div><div class="acts"><button id="ac">Cancel</button><button class="p" id="ab">Open reports</button></div></dialog>
+<div class="wrap">
+<div class="top"><div style="flex:1"><h1>Star Builders</h1><div class="mu"><span id="role"></span> <span id="sync" title="Tap to refresh"></span></div></div><button id="mn" aria-label="Menu">⋯ Menu</button></div>
+<div class="top"><select id="site" style="flex:1"></select><button id="qa" class="p">＋ Add site</button></div>
+<div class="cards"><div class="c"><small>Site advance given</small><b id="sa"></b></div><div class="c"><small>Total spent</small><b id="se"></b></div><div class="c"><small>Advance balance</small><b id="sb"></b></div></div>
+<div class="tabs"><button id="t1" class="on">Entries</button><button id="t2">Reports</button></div>
+<div id="v1"><input id="q" placeholder="Search by item, person, description…" style="margin-bottom:10px"><div id="list"></div></div>
+<div id="v2" hidden></div>
+</div>
+<button class="p fab" id="add">+ Add entry</button>
+
+<dialog id="dlg"><b id="dt">Add entry</b>
+<label>What is this?</label><div class="seg"><button id="ty0" class="on">Expense (paid out)</button><button id="ty1">Site advance</button><button id="ty2">Personal advance</button></div><div class="mu" id="tyh" style="margin-top:6px"></div>
+<div class="two"><div><label>Date</label><input type="date" id="fd"></div><div><label>Amount (₹)</label><input type="number" inputmode="decimal" id="fa" placeholder="0"></div></div>
+<label>Paid for (Labour, Steel, Wood…)</label><input id="fc" list="cl" autocomplete="off"><datalist id="cl"></datalist>
+<label>Description (optional)</label><input id="fx">
+<div class="two"><div><label>Paid to</label><input id="fp" list="pl" autocomplete="off"><datalist id="pl"></datalist></div><div><label>Nos / Qty</label><input id="fn"></div></div>
+<div id="brbox" hidden><label>Break-up of this advance (how it was spent)</label><div id="brl"></div><button id="bradd" type="button">+ Add breakup line</button><div id="brs" class="mu" style="margin-top:8px"></div></div>
+<div class="acts"><button id="fdel" style="color:var(--rd)" hidden>Delete</button><button id="fcan">Cancel</button><button class="p" id="fsv">Save</button></div></dialog>
+
+<dialog id="sdl"><b id="sdt">Add new site</b><label>Site name</label><input id="sn" autocomplete="off"><div id="se" class="out" style="min-height:20px;margin:6px 0"></div><div class="acts"><button id="sc">Cancel</button><button class="p" id="ss">Save</button></div></dialog>
+<dialog id="ddl"><b>Delete this site?</b><p id="dtx"></p><div class="acts"><button id="dc">Cancel</button><button id="dd" style="background:var(--rd);color:#fff;border-color:var(--rd)">Delete</button></div></dialog>
+<dialog id="mdl"><b>Menu</b><div class="menu" style="margin-top:12px">
+<button id="m11">⬆ Upload this device's data to the shared database (one-time)</button><button id="m10">🔑 Admin login (reports, export, import)</button><button id="m1">＋ Add new site</button><button id="m2">✎ Rename this site</button><button id="m3">🗑 Delete this site</button>
+<button id="m4">⬆ Import Excel (all sheets become sites)</button><button id="m5">⬇ Export all sites to Excel</button><button id="m9">⬇ Export this site to Excel</button><button id="m6">⬇ Export this site as CSV</button>
+<button id="m7">◐ Switch light/dark</button><button id="m8">🔒 Lock app</button><button onclick="mdl.close()">Close</button></div>
+<input type="file" id="fi" accept=".xlsx,.xls,.csv" hidden></dialog>
+
+<div id="toast"></div>
+<script>
+const $=id=>document.getElementById(id);
+const H=['Date','Paid for','Description of Expense','Nos','Paid To','Amount (₹)','Advance','Balance'];
+const EMBED={cur:0,sites:[{"name":"CMS","rows":[{"id":1,"date":"2026-09-18","cat":"Labour payment","desc":"Mason","nos":"","to":"Naresh","amt":2000,"adv":0},{"id":2,"date":"2026-09-28","cat":"Labour payment","desc":"Mason","nos":"","to":"Naresh","amt":8000,"adv":0},{"id":3,"date":"2026-09-30","cat":"Labour payment","desc":"Mason","nos":"","to":"Naresh","amt":12000,"adv":0},{"id":4,"date":"2026-10-06","cat":"Steel","desc":"Advance","nos":"","to":"Sai Steels","amt":221900,"adv":0},{"id":5,"date":"2026-10-10","cat":"Arch firm","desc":"","nos":"","to":"Rakesh","amt":5000,"adv":0},{"id":6,"date":"2026-10-13","cat":"Earth work","desc":"","nos":"","to":"Muthu","amt":3800,"adv":0},{"id":7,"date":"2026-10-14","cat":"Site Advance","desc":"Advance","nos":"","to":"Srinidhi","amt":0,"adv":30000},{"id":8,"date":"2026-10-14","cat":"Wood and Transport","desc":"","nos":"","to":"","amt":2600,"adv":0},{"id":9,"date":"2026-10-16","cat":"Survey","desc":"","nos":"","to":"Kavitha","amt":5000,"adv":0},{"id":10,"date":"2026-10-17","cat":"Survey","desc":"","nos":"","to":"Kavitha","amt":500,"adv":0},{"id":11,"date":"2026-10-13","cat":"Steel","desc":"40mm","nos":"","to":"","amt":7581,"adv":0},{"id":12,"date":"2026-10-14","cat":"Wood","desc":"","nos":"","to":"","amt":2100,"adv":0},{"id":13,"date":"2026-10-14","cat":"Transport","desc":"","nos":"","to":"","amt":500,"adv":0},{"id":14,"date":"2026-10-14","cat":"M sand","desc":"","nos":"","to":"","amt":7761,"adv":0},{"id":15,"date":"2026-10-14","cat":"Kudai","desc":"","nos":"","to":"","amt":400,"adv":0},{"id":16,"date":"2026-10-12","cat":"JCB","desc":"","nos":"","to":"","amt":3800,"adv":0},{"id":17,"date":"2026-10-15","cat":"Granite","desc":"","nos":"","to":"","amt":2300,"adv":0},{"id":18,"date":"2026-10-15","cat":"Lamination - printout","desc":"","nos":"","to":"","amt":400,"adv":0},{"id":19,"date":"2026-10-15","cat":"Cement","desc":"Unloading payment too","nos":"","to":"","amt":100,"adv":0},{"id":20,"date":"2026-10-15","cat":"JCB","desc":"","nos":"","to":"","amt":5300,"adv":0},{"id":21,"date":"2026-10-15","cat":"Materials","desc":"","nos":"","to":"","amt":2300,"adv":0},{"id":22,"date":"2026-10-15","cat":"M sand","desc":"","nos":"","to":"","amt":8464,"adv":0},{"id":23,"date":"2026-10-15","cat":"M sand","desc":"","nos":"","to":"","amt":8645,"adv":0},{"id":24,"date":"2026-10-16","cat":"JCB","desc":"","nos":"","to":"","amt":3500,"adv":0},{"id":25,"date":"2026-10-16","cat":"Steel","desc":"20mm","nos":"","to":"","amt":7713,"adv":0},{"id":26,"date":"2026-10-16","cat":"Steel","desc":"20mm","nos":"","to":"","amt":7425,"adv":0},{"id":27,"date":"2026-10-17","cat":"JCB","desc":"","nos":"","to":"","amt":7650,"adv":0},{"id":28,"date":"2026-10-17","cat":"Machine operator","desc":"","nos":"","to":"","amt":1300,"adv":0},{"id":29,"date":"2026-10-17","cat":"Diesel","desc":"","nos":"","to":"","amt":300,"adv":0},{"id":30,"date":"2026-10-17","cat":"Pooja things","desc":"","nos":"","to":"","amt":100,"adv":0},{"id":31,"date":"2026-10-17","cat":"Tea","desc":"","nos":"","to":"","amt":500,"adv":0},{"id":32,"date":"2026-10-17","cat":"Wood","desc":"","nos":"","to":"","amt":2980,"adv":0},{"id":33,"date":"2026-10-17","cat":"Rope and transport","desc":"","nos":"","to":"","amt":1100,"adv":0},{"id":34,"date":"2026-10-17","cat":"Labour Payment","desc":"Advance","nos":"","to":"Naresh","amt":1500,"adv":0},{"id":35,"date":"2026-10-17","cat":"Thread","desc":"","nos":"","to":"Umabharathi Traders","amt":5000,"adv":0},{"id":36,"date":"2026-10-17","cat":"JCB","desc":"6.5 hrs","nos":"","to":"","amt":7650,"adv":0},{"id":37,"date":"2026-10-18","cat":"Site Advance","desc":"","nos":"","to":"Srinidhi","amt":0,"adv":20000},{"id":38,"date":"2026-10-18","cat":"Plumbing items","desc":"","nos":"","to":"Sri Jayalakshmi Hardwares","amt":7333,"adv":0},{"id":39,"date":"2026-10-18","cat":"Tea","desc":"Labour","nos":"","to":"","amt":300,"adv":0},{"id":40,"date":"2026-10-18","cat":"Motor and fittings","desc":"","nos":"","to":"","amt":7333,"adv":0},{"id":41,"date":"2026-10-18","cat":"Fittings","desc":"","nos":"","to":"","amt":100,"adv":0},{"id":42,"date":"2026-10-18","cat":"Bondle","desc":"4","nos":"","to":"","amt":400,"adv":0},{"id":43,"date":"2026-10-18","cat":"Labour payment","desc":"Advance","nos":"","to":"Naresh","amt":7500,"adv":0},{"id":44,"date":"2026-10-19","cat":"Tea","desc":"Labour","nos":"","to":"","amt":300,"adv":0},{"id":45,"date":"2026-10-19","cat":"Cement","desc":"Unloading payment too","nos":"50","to":"","amt":16100,"adv":0},{"id":46,"date":"2026-10-19","cat":"Water cane","desc":"","nos":"","to":"","amt":100,"adv":0},{"id":47,"date":"2026-09-19","cat":"Cement","desc":"","nos":"50","to":"","amt":16000,"adv":0},{"id":48,"date":"2026-10-19","cat":"Labour payment","desc":"","nos":"","to":"Naresh","amt":3000,"adv":0},{"id":49,"date":"2026-10-19","cat":"Cement","desc":"","nos":"50","to":"Srinidhi","amt":16000,"adv":0},{"id":50,"date":"2026-10-19","cat":"Labour Payment","desc":"","nos":"","to":"Srinidhi","amt":10000,"adv":0},{"id":51,"date":"2026-10-20","cat":"Machine operator","desc":"","nos":"","to":"","amt":1200,"adv":0},{"id":52,"date":"2026-10-20","cat":"Tea","desc":"Labour","nos":"","to":"","amt":300,"adv":0},{"id":53,"date":"2026-10-20","cat":"Contractor","desc":"","nos":"","to":"Naresh","amt":1500,"adv":0},{"id":54,"date":"2026-10-20","cat":"Earth work","desc":"","nos":"","to":"Muthu","amt":11000,"adv":0},{"id":55,"date":"2026-10-20","cat":"Mixture machine","desc":"Advance","nos":"","to":"Srinidhi","amt":17000,"adv":0},{"id":56,"date":"2026-10-21","cat":"JCB","desc":"","nos":"","to":"Velan Earth Movers","amt":6600,"adv":0},{"id":57,"date":"2026-10-22","cat":"Steel","desc":"","nos":"","to":"Ashik Steel","amt":24798,"adv":0},{"id":58,"date":"2026-10-23","cat":"Personal advance","desc":"","nos":"","to":"Srinidhi","amt":5000,"adv":0},{"id":59,"date":"2026-10-23","cat":"Labour Payment","desc":"","nos":"","to":"Srinidhi","amt":1000,"adv":0},{"id":60,"date":"2026-10-23","cat":"Labour payment","desc":"","nos":"","to":"Naresh","amt":2000,"adv":0},{"id":61,"date":"2026-10-23","cat":"Materials","desc":"","nos":"","to":"Ashik Steel","amt":24798,"adv":0},{"id":62,"date":"2026-10-24","cat":"Steel","desc":"","nos":"","to":"Venkatesh Traders","amt":2000,"adv":0},{"id":63,"date":"2026-10-24","cat":"Steel","desc":"","nos":"","to":"Venkatesh Traders","amt":11865,"adv":0},{"id":64,"date":"2026-10-24","cat":"Steel","desc":"","nos":"","to":"Sai Steels","amt":150000,"adv":0},{"id":65,"date":"2026-10-25","cat":"Labour payment","desc":"","nos":"","to":"Naresh","amt":3000,"adv":0},{"id":66,"date":"2026-10-25","cat":"Steel","desc":"","nos":"","to":"Sai Steels","amt":150000,"adv":0},{"id":67,"date":"2026-10-25","cat":"Steel","desc":"","nos":"","to":"Kanchi steels","amt":1000,"adv":0},{"id":68,"date":"2026-10-25","cat":"Food","desc":"Labour","nos":"","to":"Balaji Mess","amt":1200,"adv":0},{"id":69,"date":"2026-10-25","cat":"Steel","desc":"","nos":"","to":"Kanchi steels","amt":16300,"adv":0},{"id":70,"date":"2026-10-26","cat":"Earth work","desc":"","nos":"","to":"Muthu","amt":6500,"adv":0},{"id":71,"date":"2026-10-27","cat":"Cement","desc":"","nos":"20","to":"Ashik Steel","amt":6700,"adv":0},{"id":72,"date":"2026-10-27","cat":"Materials","desc":"","nos":"","to":"Dillidurai","amt":53600,"adv":0},{"id":73,"date":"2026-10-27","cat":"Drawing charges","desc":"","nos":"","to":"Rakesh","amt":10000,"adv":0},{"id":74,"date":"2026-10-28","cat":"Cement","desc":"Unloading payment too","nos":"50","to":"Sri Venkateswara Trade","amt":16300,"adv":0},{"id":75,"date":"2026-10-28","cat":"Labour Payment","desc":"","nos":"","to":"Srinidhi","amt":8000,"adv":0},{"id":76,"date":"2026-10-28","cat":"Site Advance","desc":"","nos":"","to":"Srinidhi","amt":0,"adv":5000},{"id":77,"date":"2026-10-29","cat":"JCB","desc":"","nos":"","to":"Karthi om muruga","amt":6000,"adv":0},{"id":78,"date":"2026-10-30","cat":"Bricks","desc":"","nos":"","to":"Srinidhi","amt":5500,"adv":0},{"id":79,"date":"2026-10-30","cat":"Materials","desc":"","nos":"","to":"Saran","amt":79248,"adv":0},{"id":80,"date":"2026-10-30","cat":"Labour payment","desc":"Mason","nos":"","to":"Balaji","amt":5000,"adv":0},{"id":81,"date":"2026-10-31","cat":"Labour payment","desc":"","nos":"","to":"Naresh","amt":3000,"adv":0},{"id":82,"date":"2026-11-02","cat":"Cement","desc":"","nos":"20","to":"Ashik Steel","amt":6700,"adv":0},{"id":83,"date":"2026-11-04","cat":"Earth work","desc":"","nos":"","to":"Muthu","amt":5000,"adv":0},{"id":84,"date":"2026-11-04","cat":"Steel","desc":"","nos":"","to":"Ashik Steel","amt":19900,"adv":0},{"id":85,"date":"2026-11-04","cat":"Site Advance","desc":"","nos":"","to":"Srinidhi","amt":0,"adv":3000},{"id":86,"date":"2026-11-04","cat":"Hose","desc":"","nos":"","to":"Mahasri Enterprises","amt":1900,"adv":0},{"id":87,"date":"2026-11-04","cat":"Site Cleaning","desc":"","nos":"","to":"Alagesan","amt":3500,"adv":0},{"id":88,"date":"2026-11-04","cat":"Bricks","desc":"","nos":"","to":"KBI Bricks","amt":100000,"adv":0}]},{"name":"Vaiyavoor","rows":[{"id":89,"date":"2026-10-04","cat":"Labour payment","desc":"","nos":"","to":"Sathish","amt":4500,"adv":0},{"id":90,"date":"2026-10-15","cat":"Ashik Steel","desc":"","nos":"","to":"Ashik Steel","amt":50191,"adv":0},{"id":91,"date":"2026-10-16","cat":"Material payment","desc":"","nos":"","to":"Sathish","amt":10000,"adv":0},{"id":92,"date":"2026-10-16","cat":"","desc":"","nos":"","to":"Loki","amt":6000,"adv":0},{"id":93,"date":"2026-10-17","cat":"Barbending","desc":"","nos":"","to":"Loki","amt":4000,"adv":0},{"id":94,"date":"2026-10-19","cat":"","desc":"","nos":"","to":"Loki","amt":10000,"adv":0},{"id":95,"date":"2026-10-19","cat":"Material payment","desc":"","nos":"","to":"Sathish","amt":50000,"adv":0},{"id":96,"date":"2026-10-20","cat":"Mason","desc":"","nos":"","to":"Loki","amt":10000,"adv":0},{"id":97,"date":"2026-10-20","cat":"20mm","desc":"","nos":"","to":"Kutty siva","amt":4200,"adv":0},{"id":98,"date":"2026-10-21","cat":"fabrication","desc":"","nos":"","to":"Sathish","amt":40000,"adv":0},{"id":99,"date":"2026-10-21","cat":"drawing fees","desc":"","nos":"","to":"Rakesh","amt":12000,"adv":0},{"id":100,"date":"2026-10-25","cat":"fabrication","desc":"","nos":"","to":"Sathish","amt":10000,"adv":0},{"id":101,"date":"2026-10-30","cat":"","desc":"","nos":"","to":"Loki","amt":10000,"adv":0},{"id":102,"date":"2026-11-05","cat":"Paint","desc":"","nos":"","to":"DSM Traders","amt":8100,"adv":0},{"id":103,"date":"2026-11-05","cat":"Paint","desc":"","nos":"","to":"DSM Traders","amt":620,"adv":0}]},{"name":"Kaspa","rows":[{"id":104,"date":"2026-10-13","cat":"Advance","desc":"","nos":"","to":"Suresh","amt":5000,"adv":0},{"id":105,"date":"2026-10-17","cat":"","desc":"","nos":"","to":"Suresh","amt":3100,"adv":0},{"id":106,"date":"2026-10-17","cat":"","desc":"","nos":"","to":"Divakar","amt":30000,"adv":0},{"id":107,"date":"2026-10-18","cat":"Cement","desc":"","nos":"","to":"Samraj","amt":10050,"adv":0},{"id":108,"date":"2026-10-20","cat":"Bricks","desc":"","nos":"","to":"Ajith","amt":34800,"adv":0},{"id":109,"date":"2026-10-27","cat":"Tiles","desc":"","nos":"","to":"Dhanalakshmi sanitary wares","amt":2000,"adv":0},{"id":110,"date":"2026-10-27","cat":"Tiles","desc":"","nos":"","to":"Dhanalakshmi sanitary wares","amt":1440,"adv":0},{"id":111,"date":"2026-10-30","cat":"Tiles","desc":"","nos":"","to":"Jayabalaji Tiles and Sanitaryware","amt":150000,"adv":0},{"id":112,"date":"2026-10-31","cat":"Rate Work","desc":"","nos":"","to":"Divakar Ramesh","amt":3000,"adv":0},{"id":113,"date":"2026-10-31","cat":"Labor Payment","desc":"","nos":"","to":"Divakar Ramesh","amt":12300,"adv":0},{"id":114,"date":"2026-11-03","cat":"Materials","desc":"","nos":"","to":"Sivakumar Gopi","amt":2000,"adv":0},{"id":115,"date":"2026-11-04","cat":"Primer","desc":"","nos":"","to":"DK Electrical pants and hardware","amt":3275,"adv":0},{"id":116,"date":"2026-11-04","cat":"Putty","desc":"","nos":"","to":"Sivanandhan","amt":6500,"adv":0}]},{"name":"Kazhinjur","rows":[{"id":117,"date":"2026-10-15","cat":"Advance","desc":"","nos":"","to":"Madhan","amt":1000,"adv":0},{"id":118,"date":"2026-10-24","cat":"","desc":"","nos":"","to":"MM Agencies","amt":10105,"adv":0},{"id":119,"date":"2026-10-25","cat":"","desc":"","nos":"","to":"Madhan","amt":16000,"adv":0},{"id":120,"date":"2026-10-27","cat":"Advance","desc":"","nos":"","to":"Madhan","amt":1000,"adv":0},{"id":121,"date":"2026-10-27","cat":"Epoxy payment","desc":"","nos":"","to":"Sivanandhan","amt":12000,"adv":0},{"id":122,"date":"2026-10-27","cat":"","desc":"","nos":"","to":"Mathavan","amt":12685,"adv":0},{"id":123,"date":"2026-10-28","cat":"Scof Folding","desc":"","nos":"","to":"Jayakumar","amt":9000,"adv":0},{"id":124,"date":"2026-10-29","cat":"Advance","desc":"","nos":"","to":"Madhan","amt":1000,"adv":0},{"id":125,"date":"2026-10-29","cat":"Bricks","desc":"","nos":"","to":"Ajithkumar Ramesh","amt":25500,"adv":0},{"id":126,"date":"2026-10-31","cat":"Labor Payment","desc":"","nos":"","to":"Divakar Ramesh","amt":7400,"adv":0},{"id":127,"date":"2026-11-02","cat":"Old Balance","desc":"","nos":"","to":"Divakar Ramesh","amt":10000,"adv":0},{"id":128,"date":"2026-11-04","cat":"Epoxy payment","desc":"","nos":"","to":"Sivanandhan","amt":1950,"adv":0}]},{"name":"Vaduganthangal","rows":[{"id":129,"date":"2026-10-17","cat":"","desc":"","nos":"","to":"Divakar Ramesh","amt":20000,"adv":0},{"id":130,"date":"2026-10-19","cat":"","desc":"","nos":"","to":"Divakar Ramesh","amt":20000,"adv":0},{"id":131,"date":"2026-10-22","cat":"","desc":"","nos":"","to":"Divakar Ramesh","amt":10000,"adv":0},{"id":132,"date":"2026-10-24","cat":"Steel","desc":"","nos":"","to":"PKS Enterprises","amt":90000,"adv":0},{"id":133,"date":"2026-10-29","cat":"Bricks","desc":"","nos":"","to":"Ajithkumar Ramesh","amt":34400,"adv":0},{"id":134,"date":"2026-10-31","cat":"Rate work","desc":"","nos":"","to":"Divakar Ramesh","amt":10000,"adv":0},{"id":135,"date":"2026-10-31","cat":"Labor Payment","desc":"","nos":"","to":"Divakar Ramesh","amt":800,"adv":0}]},{"name":"Maiva","rows":[{"id":136,"date":"2026-10-14","cat":"Site","desc":"","nos":"","to":"Abimanyu","amt":200,"adv":0},{"id":137,"date":"2026-10-14","cat":"Maiva material","desc":"","nos":"","to":"Dilip","amt":5900,"adv":0},{"id":138,"date":"2026-10-16","cat":"Petrol allowance","desc":"","nos":"","to":"Abimanyu","amt":1500,"adv":0},{"id":139,"date":"2026-10-20","cat":"Core cutting","desc":"","nos":"","to":"Prabu Manikkam","amt":5400,"adv":0},{"id":140,"date":"2026-10-28","cat":"Sponge","desc":"","nos":"","to":"Abimanyu","amt":200,"adv":0},{"id":141,"date":"2026-10-28","cat":"Plumber adavance","desc":"","nos":"","to":"Prabu Manikkam","amt":15000,"adv":0},{"id":142,"date":"2026-10-28","cat":"Kurupaati motor recoil","desc":"","nos":"","to":"Abimanyu","amt":3000,"adv":0},{"id":143,"date":"2026-10-28","cat":"Kurupaati Plumber Charges","desc":"","nos":"","to":"Abimanyu","amt":550,"adv":0},{"id":144,"date":"2026-10-28","cat":"Petrol allowance","desc":"","nos":"","to":"Abimanyu","amt":200,"adv":0},{"id":145,"date":"2026-11-01","cat":"Paint","desc":"","nos":"","to":"Abimanyu","amt":3673,"adv":0},{"id":146,"date":"2026-11-01","cat":"Paint","desc":"","nos":"","to":"Abimanyu","amt":2300,"adv":0},{"id":147,"date":"2026-11-02","cat":"Core cutting","desc":"","nos":"","to":"Prabu Manikkam","amt":7200,"adv":0},{"id":148,"date":"2026-11-02","cat":"Plumbing","desc":"","nos":"","to":"Prabu Manikkam","amt":15000,"adv":0},{"id":149,"date":"2026-11-03","cat":"Auto Rent","desc":"","nos":"","to":"Abimanyu","amt":700,"adv":0},{"id":150,"date":"2026-11-04","cat":"Maiva material","desc":"","nos":"","to":"Abimanyu","amt":1200,"adv":0}]},{"name":"Nehrunagar","rows":[{"id":151,"date":"2026-10-24","cat":"Carpenter","desc":"","nos":"","to":"Rajencarp","amt":30000,"adv":0},{"id":152,"date":"2026-10-25","cat":"Mason","desc":"","nos":"","to":"Mani","amt":20000,"adv":0}]},{"name":"SunStar","rows":[{"id":153,"date":"2026-10-22","cat":"Paver block payment","desc":"","nos":"","to":"7 Eleven infra tech","amt":2000,"adv":0},{"id":154,"date":"2026-10-22","cat":"Paver block payment","desc":"","nos":"","to":"7 Eleven infra tech","amt":34000,"adv":0},{"id":155,"date":"2026-10-23","cat":"Material","desc":"","nos":"","to":"Heera Traders","amt":9200,"adv":0},{"id":156,"date":"2026-10-28","cat":"Pancard lamination","desc":"","nos":"","to":"Abimanyu","amt":200,"adv":0}]},{"name":"Ranipet","rows":[{"id":157,"date":"2026-10-27","cat":"Madras Designers","desc":"","nos":"","to":"Madras Designers","amt":500,"adv":0}]},{"name":"Natural Remedies","rows":[{"id":158,"date":"2026-10-31","cat":"Grill","desc":"","nos":"","to":"Venkatesh Dharman","amt":2500,"adv":0}]},{"name":"Office","rows":[{"id":159,"date":"2026-10-27","cat":"office","desc":"","nos":"","to":"Priyadharshini","amt":500,"adv":0},{"id":160,"date":"2026-10-28","cat":"Ayudha pooja","desc":"","nos":"","to":"Nagaraj","amt":2350,"adv":0}]}]};
+/* ====== SHARED DATABASE ======
+   Paste the Google Apps Script Web app URL between the quotes (see setup guide).
+   While it is empty the app works only on this device, as before. */
+const API='PASTE_WEB_APP_URL_HERE';
+const ONLINE=/^https:\/\/script\.google\.com\//.test(API);
+const KEY=ONLINE?'sb_cache':'sitebook3';
+let _l=0;const newId=()=>{let v=Date.now()*10+Math.floor(Math.random()*10);if(v<=_l)v=_l+1;return _l=v};
+const ld=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
+const okS=x=>!!(x&&x.sites&&x.sites.length);
+let S=ld(KEY);
+if(!okS(S))S=ONLINE?{cur:0,sites:[{name:'Loading…',rows:[]}]}:EMBED;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const inr=n=>'₹ '+(+n||0).toLocaleString('en-IN');
+const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fd=d=>{if(!d)return'';const[y,m,x]=d.split('-');return x+'-'+MO[+m-1]+'-'+y.slice(2)};
+const cur=()=>S.sites[S.cur];
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const brs=r=>(r.br||[]).reduce((s,l)=>s+(+l.amt||0),0);
+function normCat(c){c=String(c||'').trim();return /^labou?rs?\s*payments?$/i.test(c)?'Labour Payment':c}
+const PA=r=>/personal\s*advance/i.test(r.cat||'');
+function advInfo(rows){const m={},g={};rows.filter(r=>r.adv).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||a.id-b.id).forEach(r=>{const k=(r.to||'').trim().toLowerCase(),p=g[k],carry=p?p.bal:0,used=brs(r),avail=r.adv+carry;if(p)p.next=true;g[k]=m[r.id]={carry,has:!!p,avail,used,bal:avail-used,next:false}});return m}
+const flat=rows=>rows.flatMap(r=>[r,...(r.br||[]).map(l=>({site:r.site,date:r.date,cat:l.cat,desc:'From site advance',to:l.to||r.to,amt:+l.amt||0,adv:0}))]);
+const tot=rows=>{const a=rows.reduce((s,r)=>s+r.adv,0),u=rows.reduce((s,r)=>s+brs(r),0),e=rows.reduce((s,r)=>s+r.amt,0)+u;return{a,e,b:a-u}};
+function withBal(rows){let b=0;return[...rows].sort((x,y)=>(x.date||'').localeCompare(y.date||'')||x.id-y.id).map(r=>({...r,bal:b+=r.adv-brs(r)}))}
+function render(){
+ $('site').innerHTML=S.sites.map((s,i)=>`<option value="${i}" ${i==S.cur?'selected':''}>${esc(s.name)}</option>`).join('');
+ const t=tot(cur().rows);$('sa').textContent=inr(t.a);$('se').textContent=inr(t.e);$('sb').textContent=inr(t.b);$('sb').className=t.b<0?'out':'';
+ const q=$('q').value.toLowerCase();
+ const AI=advInfo(cur().rows);const all=[...cur().rows].sort((a,b)=>(a.date||'').localeCompare(b.date||'')||a.id-b.id).reverse();
+ const items=[];all.forEach(r=>{items.push({r});[...(r.br||[])].sort((a,b)=>(a.date||r.date||'').localeCompare(b.date||r.date||'')).forEach(l=>items.push({r,l}))});
+ const txt=x=>(x.l?[x.l.cat,x.l.to,x.r.to,'site advance']:[x.r.cat,x.r.desc,x.r.to,x.r.nos]).join(' ').toLowerCase();
+ const rows=items.filter(x=>!q||txt(x).includes(q));
+ $('list').innerHTML=rows.length?rows.map(x=>{const r=x.r;if(x.l)return`<div class="row" data-id="${r.id}" style="margin-left:18px;border-left:3px solid var(--ac)"><div class="l"><div class="t">${esc(x.l.cat)||'(no item)'}</div><div class="s">${fd(x.l.date||r.date)}${x.l.to?' · '+esc(x.l.to):''}${x.l.nos?' · Nos '+esc(x.l.nos):''} · from site advance (${esc(r.to||'advance')})</div></div><div class="r"><div class="t">${inr(x.l.amt)}</div></div></div>`;
+ const I=AI[r.id],blk=(k,v,c)=>`<div><div class="s">${k}</div><div class="t ${c||''}">${inr(v)}</div></div>`;
+ if(r.adv)return`<div class="row" data-id="${r.id}" style="flex-direction:column;gap:6px"><div class="l"><div class="t">${esc(r.cat)||'Site Advance'} <span class="mu">(site advance)</span></div><div class="s">${fd(r.date)}${r.to?' · '+esc(r.to):''}${r.desc?' · '+esc(r.desc):''}${r.nos?' · Nos '+esc(r.nos):''}</div></div><div style="display:flex;gap:16px;flex-wrap:wrap">${blk('Advance',r.adv,'in')}${I.has?blk('Previous balance',I.carry)+blk('Total',I.avail,'in'):''}${blk('Used',I.used)}${blk('Balance',I.bal,I.bal<0?'out':'')}</div>${I.next?'<div class="s">Balance carried forward to the next advance</div>':''}</div>`;
+ return`<div class="row${PA(r)?' pa-row':''}" data-id="${r.id}"><div class="l"><div class="t">${esc(r.cat)||'(no item)'}${PA(r)?' <span class="pab">PERSONAL ADVANCE</span>':''}</div><div class="s">${fd(r.date)}${r.to?' · '+esc(r.to):''}${r.desc?' · '+esc(r.desc):''}${r.nos?' · Nos '+esc(r.nos):''}</div></div><div class="r"><div class="t">${inr(r.amt)}</div></div></div>`}).join(''):'<p class="mu">No entries yet. Tap “+ Add entry”.</p>';
+ const u=k=>[...new Set(S.sites.flatMap(s=>s.rows.map(r=>r[k])).filter(Boolean))].sort();
+ $('cl').innerHTML=u('cat').map(x=>`<option value="${esc(x)}">`).join('');$('pl').innerHTML=u('to').map(x=>`<option value="${esc(x)}">`).join('');
+ if(!$('v2').hidden)reports();
+}
+let edit=null,ty=0,BR=[],ADMIN=false;
+function formAdv(){const id=edit||1e12,rows=cur().rows.filter(r=>r.id!==edit);rows.push({id,date:$('fd').value,to:$('fp').value,adv:+$('fa').value||1e-9,br:BR.map(l=>({amt:+l.amt||0}))});return advInfo(rows)[id]}
+function brInfo(){const u=BR.reduce((s,l)=>s+(+l.amt||0),0),f=formAdv();$('brs').innerHTML=(f.has?'Previous balance <b>'+inr(f.carry)+'</b> carried forward · Total available <b>'+inr(f.avail)+'</b><br>':'')+'Used <b>'+inr(u)+'</b> · Balance <b class="'+(f.avail-u<0?'out':'in')+'">'+inr(f.avail-u)+'</b>'}
+function drawBR(){$('brl').innerHTML=BR.map((l,i)=>`<div class="sec" style="padding:8px;margin-bottom:6px"><div style="display:flex;gap:6px"><input list="cl" placeholder="Item (Steel, Cement, Tea…)" value="${esc(l.cat||'')}" data-i="${i}" data-k="cat"><button class="x" data-i="${i}" aria-label="Remove">×</button></div><div class="two" style="margin-top:6px"><input inputmode="decimal" placeholder="Nos / qty (bags…)" value="${esc(l.nos||'')}" data-i="${i}" data-k="nos"><input type="number" inputmode="decimal" placeholder="Amount ₹" value="${l.amt??''}" data-i="${i}" data-k="amt"></div><div class="two" style="margin-top:6px"><input type="date" value="${l.date||''}" data-i="${i}" data-k="date" aria-label="Date"><input list="pl" placeholder="Paid to / note" value="${esc(l.to||'')}" data-i="${i}" data-k="to"></div></div>`).join('');brInfo()}
+$('brl').oninput=e=>{const d=e.target.dataset;if(d.k){BR[+d.i][d.k]=e.target.value;brInfo()}};
+$('brl').onclick=e=>{const b=e.target.closest('.x');if(b){BR.splice(+b.dataset.i,1);drawBR()}};
+$('bradd').onclick=()=>{BR.push({cat:'',to:'',amt:'',date:$('fd').value});drawBR()};$('fa').oninput=brInfo;$('fp').oninput=brInfo;$('fd').onchange=brInfo;
+function setTy(n){ty=n;[0,1,2].forEach(i=>$('ty'+i).className=n===i?'on':'');$('brbox').hidden=n!==1;$('tyh').textContent=['Money paid out for site work (materials, labour, etc.).','Money given to a site person to spend on site. Add a break-up below.','Advance given to a person for personal use (e.g. salary advance). Shown highlighted.'][n];if(n===2&&!$('fc').value.trim())$('fc').value='Personal advance'}
+function open_(id){edit=id;const r=id?cur().rows.find(x=>x.id==id):null;$('dt').textContent=r?'Edit entry':'Add entry';
+ setTy(r&&r.adv?1:(r&&PA(r)?2:0));$('fd').value=r?r.date:new Date().toISOString().slice(0,10);$('fa').value=r?(r.adv||r.amt):'';
+ $('fc').value=r?r.cat:'';$('fx').value=r?r.desc:'';$('fp').value=r?r.to:'';$('fn').value=r?r.nos:'';$('fdel').hidden=!r||!ADMIN;BR=r&&r.br?r.br.map(x=>({...x,date:x.date||r.date})):[];drawBR();$('dlg').showModal()}
+$('add').onclick=()=>open_(null);$('ty0').onclick=()=>setTy(0);$('ty1').onclick=()=>setTy(1);$('ty2').onclick=()=>setTy(2);$('fcan').onclick=()=>$('dlg').close();
+$('list').onclick=e=>{const r=e.target.closest('.row');if(r)open_(+r.dataset.id)};
+$('fsv').onclick=()=>{const a=+$('fa').value;if(!a||!$('fd').value){alert('Please enter the date and amount.');return}
+ if(ty===1&&BR.reduce((s,l)=>s+(+l.amt||0),0)>formAdv().avail&&!confirm('Breakup is more than the available advance. Save anyway?'))return;
+ const o={date:$('fd').value,cat:normCat(ty===2&&!$('fc').value.trim()?'Personal advance':$('fc').value),desc:$('fx').value.trim(),to:$('fp').value.trim(),nos:$('fn').value.trim(),amt:ty===1?0:a,adv:ty===1?a:0,br:ty===1?BR.filter(l=>+l.amt>0).map(l=>({nos:String(l.nos||'').trim(),date:l.date||$('fd').value,cat:normCat(l.cat),desc:'',to:(l.to||'').trim(),amt:+l.amt})):[]};
+ const old=edit?cur().rows.find(x=>x.id==edit):null;const row={...(old||{}),...o,id:old?old.id:(edit||newId())};
+ $('dlg').close();mutate({t:'put',site:cur().name,row})};
+$('fdel').onclick=()=>{if(confirm('Delete this entry?')){$('dlg').close();mutate({t:'del',id:edit})}};
+$('site').onchange=e=>{S.cur=+e.target.value;save();render()};$('q').oninput=render;
+function tab(n){if(n==2&&!ADMIN){askAdmin();return}$('v1').hidden=n!=1;$('v2').hidden=n!=2;$('t1').className=n==1?'on':'';$('t2').className=n==2?'on':'';$('add').hidden=n!=1;if(n==2)reports()}
+$('t1').onclick=()=>tab(1);$('t2').onclick=()=>tab(2);
+let rf='',rt='',rs='*';
+function group(rows,f){const m={};flat(rows).forEach(r=>{if(r.amt){const k=f(r)||'(not specified)';const x=m[k]||(m[k]=[0,0]);x[0]+=r.amt;x[1]+=parseFloat(r.nos)||0}});return Object.entries(m).map(([k,x])=>[k,x[0],x[1]]).sort((a,b)=>b[1]-a[1])}
+function scopeRows(){if(rs!=='*'&&!S.sites[rs])rs='*';const L=rs==='*'?S.sites:[S.sites[rs]];return L.flatMap(s=>s.rows.filter(r=>(!rf||r.date>=rf)&&(!rt||r.date<=rt)).map(r=>({...r,site:s.name})))}
+const mlab=k=>/^\d{4}-\d{2}$/.test(k)?MO[+k.slice(5)-1]+' '+k.slice(0,4):k;
+function repData(){
+ const rows=scopeRows(),fl=flat(rows),T=tot(rows),all=rs==='*',tt=T.e||1,pc=v=>Math.round(v/tt*1000)/10,tb=[];
+ const tl=(g,k)=>[...g.map(x=>k(x)),null];
+ if(all){const r=S.sites.map(s=>{const sr=rows.filter(x=>x.site===s.name),t=tot(sr);return[s.name,sr.length,t.e,pc(t.e),t.a,t.b]}).sort((a,b)=>b[2]-a[2]);
+  tb.push({t:'Site-wise expense',o:1,h:['Site','Entries','Spent','Share %','Site advance','Advance balance'],f:'snmpmm',rows:[...r,['All sites',rows.length,T.e,100,T.a,T.b]],tot:1})}
+ const it=group(rows,r=>r.cat),pe=group(rows,r=>r.to),mo=group(rows,r=>r.date?r.date.slice(0,7):'').sort((a,b)=>a[0].localeCompare(b[0]));
+ tb.push({t:'By item (Paid for)',o:1,h:['Item','Nos','Amount','Share %'],f:'snmp',rows:[...it.map(x=>[x[0],x[2]||'',x[1],pc(x[1])]),['Total',it.reduce((s,x)=>s+x[2],0)||'',T.e,100]],tot:1});
+ tb.push({t:'By person (Paid to)',h:['Paid to','Amount','Share %'],f:'smp',rows:[...pe.map(x=>[x[0],x[1],pc(x[1])]),['Total',T.e,100]],tot:1});
+ tb.push({t:'By month',h:['Month','Amount','Share %'],f:'smp',rows:[...mo.map(x=>[mlab(x[0]),x[1],pc(x[1])]),['Total',T.e,100]],tot:1});
+ if(all){const ss=S.sites.map(s=>s.name).filter(n=>fl.some(r=>r.site===n&&r.amt)),m={};fl.forEach(r=>{if(r.amt){const k=r.cat||'(not specified)';(m[k]||(m[k]={}))[r.site]=(m[k][r.site]||0)+r.amt}});
+  const r=it.map(x=>[x[0],...ss.map(n=>m[x[0]]&&m[x[0]][n]||null),x[1]]);
+  tb.push({t:'Item x Site',h:['Item',...ss,'Total'],f:'s'+'m'.repeat(ss.length+1),rows:[...r,['Total',...ss.map(n=>fl.filter(y=>y.site===n).reduce((s,y)=>s+y.amt,0)),T.e]],tot:1})}
+ const ad=rows.filter(r=>r.adv).sort((a,b)=>a.date.localeCompare(b.date));
+ const AIs={};S.sites.forEach(x=>AIs[x.name]=advInfo(x.rows));const gv=ad.reduce((s,r)=>s+r.adv,0),us=ad.reduce((s,r)=>s+brs(r),0);
+ tb.push({t:'Site advances',o:ad.length>0,h:['Date','Site','Person','Given','Previous balance','Total available','Used','Balance'],f:'dssmmmmm',rows:ad.length?[...ad.map(r=>{const I=AIs[r.site][r.id];return[r.date,r.site,r.to||'-',r.adv,I.has?I.carry:null,I.avail,I.used,I.bal]}),['Total','','',gv,null,null,us,gv-us]]:[],tot:1});
+ tb.push({t:'Advance break-up lines',h:['Date','Site','Person','Item','Nos','Amount'],f:'dssssm',rows:(()=>{const L=ad.flatMap(r=>(r.br||[]).map(l=>[l.date||r.date,r.site,r.to||'-',l.cat||'-',l.nos||'',+l.amt]));return L.length?[...L,['Total','','','',L.reduce((s,x)=>s+(parseFloat(x[4])||0),0)||'',L.reduce((s,x)=>s+x[5],0)]]:[]})(),tot:1});
+ tb.push({t:'Personal advances',hl:1,o:fl.some(r=>r.amt&&PA(r)),h:['Date','Site','Person','Note','Amount'],f:'dsssm',rows:(()=>{const L=fl.filter(r=>r.amt&&PA(r)).sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(r=>[r.date,r.site,r.to||'-',r.desc||'',r.amt]);return L.length?[...L,['Total','','','',L.reduce((s,x)=>s+x[4],0)]]:[]})(),tot:1});
+ tb.push({t:'Top 10 expenses',h:['Date','Site','Item','Paid to','Amount'],f:'dsssm',rows:(()=>{const L=fl.filter(r=>r.amt).sort((a,b)=>b.amt-a.amt).slice(0,10).map(r=>[r.date,r.site,r.cat||'-',r.to||'-',r.amt]);return L.length?[...L,['Total (top 10)','','','',L.reduce((s,x)=>s+x[4],0)]]:[]})(),tot:1});
+ tb.push({t:'Full statement',h:['Date','Site','Item','Description','Paid to','Nos','Amount','Advance'],f:'dssssSmm'.replace('S','s'),rows:(()=>{const L=[...fl].sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(r=>[r.date,r.site,r.cat||'',r.desc||'',r.to||'',r.nos||'',r.amt||null,r.adv||null]);return L.length?[...L,['Total','','','','',L.reduce((s,x)=>s+(parseFloat(x[5])||0),0)||'',L.reduce((s,x)=>s+(x[6]||0),0),L.reduce((s,x)=>s+(x[7]||0),0)]]:[]})(),tot:1});
+ return{tb,T,n:rows.length}}
+const cell=(v,k)=>v==null||v===''?'':k==='m'?inr(v):k==='p'?v+'%':k==='d'?(/^\d{4}-/.test(v)?fd(v):esc(v)):esc(v);
+const isn=k=>k==='m'||k==='p'||k==='n';
+function tHtml(t){return '<div style="overflow-x:auto"><table><tr>'+t.h.map((x,i)=>`<th class="${isn(t.f[i])?'n':''}">${esc(x)}</th>`).join('')+'</tr>'+t.rows.map((r,ri)=>`<tr class="${(t.tot&&ri==t.rows.length-1?'tt':'')+(/^personal\s*advance/i.test(String(r[0]))?' pa-row':'')}">`+r.map((v,i)=>`<td class="${isn(t.f[i])?'n':''}">${cell(v,t.f[i])}</td>`).join('')+'</tr>').join('')+'</table></div>'}
+function reports(){if(!ADMIN)return;const D=repData(),T=D.T;
+ $('v2').innerHTML=`<div class="sec"><h2>Report filters</h2><label>Site</label><select id="rs"><option value="*">All sites</option>${S.sites.map((s,i)=>`<option value="${i}" ${String(rs)===String(i)?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
+ <div class="two"><div><label>From</label><input type="date" id="rf" value="${rf}"></div><div><label>To</label><input type="date" id="rt" value="${rt}"></div></div>
+ <div class="rb"><button class="pr" data-p="all">All time</button><button class="pr" data-p="month">This month</button><button class="pr" data-p="30">Last 30 days</button></div></div>
+ <div class="cards" style="grid-template-columns:repeat(2,1fr)"><div class="c"><small>Total spent</small><b>${inr(T.e)}</b></div><div class="c"><small>Entries</small><b>${D.n}</b></div><div class="c"><small>Site advance given</small><b>${inr(T.a)}</b></div><div class="c"><small>Advance balance</small><b>${inr(T.b)}</b></div></div>`
+ +D.tb.map(t=>`<details class="sec${t.hl?' pa-row':''}" ${t.o?'open':''}><summary><b>${esc(t.t)}</b>${t.rows.length?'':' <span class="mu">(no data)</span>'}</summary>${t.rows.length?tHtml(t):''}</details>`).join('')
+ +'<button class="p" id="rx" style="width:100%;margin-top:4px">⬇ Download this report (Excel)</button>';
+ $('rs').onchange=e=>{rs=e.target.value;reports()};$('rf').onchange=e=>{rf=e.target.value;reports()};$('rt').onchange=e=>{rt=e.target.value;reports()};
+ document.querySelectorAll('.pr').forEach(b=>b.onclick=()=>{const p=b.dataset.p,d=new Date().toISOString().slice(0,10);if(p==='all'){rf='';rt=''}else if(p==='month'){rf=d.slice(0,8)+'01';rt=''}else{rf=new Date(Date.now()-29*864e5).toISOString().slice(0,10);rt=''}reports()});
+ $('rx').onclick=rx}
+function rx(){const D=repData(),wb=XLSX.utils.book_new();
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['Star Builders - Report'],['Site',rs==='*'?'All sites':S.sites[rs].name],['From',rf||'start'],['To',rt||'latest'],[],['Total spent',D.T.e],['Site advance given',D.T.a],['Advance balance',D.T.b],['Entries',D.n]]),'Summary');
+ D.tb.forEach(t=>{const cv=(v,k)=>{if(k==='d'&&/^\d{4}-/.test(v)){const p=v.split('-').map(Number);return xs(p[0],p[1],p[2])}return v};
+  const aoa=[t.h,...t.rows.map(r=>r.map((v,i)=>cv(v,t.f[i])))],ws=XLSX.utils.aoa_to_sheet(aoa);ws['!cols']=t.h.map((x,i)=>({wch:t.f[i]==='s'?24:14}));
+  aoa.forEach((r,ri)=>{if(ri)r.forEach((v,ci)=>{const c=ws[XLSX.utils.encode_cell({r:ri,c:ci})],k=t.f[ci];if(c&&c.t==='n')c.z=k==='d'?'dd-mmm-yy':k==='m'?'#,##0':k==='p'?'0.0':'0'})});
+  XLSX.utils.book_append_sheet(wb,ws,t.t.replace(/[\\\/?*\[\]:]/g,'').slice(0,31))});
+ return dl('Star_Builders_Report.xlsx',new Uint8Array(XLSX.write(wb,{type:'array',bookType:'xlsx'})))}
+// menu
+$('mn').onclick=()=>$('mdl').showModal();
+let sMode='add';
+function siteDlg(m){sMode=m;try{$('mdl').close()}catch(e){}$('sdt').textContent=m==='add'?'Add new site':'Rename this site';$('sn').value=m==='add'?'':cur().name;$('se').textContent='';$('sdl').showModal();$('sn').focus()}
+$('m1').onclick=()=>siteDlg('add');$('qa').onclick=()=>siteDlg('add');$('m2').onclick=()=>siteDlg('ren');$('sc').onclick=()=>$('sdl').close();
+$('sn').onkeydown=e=>{if(e.key==='Enter')$('ss').click()};
+$('ss').onclick=()=>{const n=$('sn').value.trim();if(!n){$('se').textContent='Please enter a site name';return}
+ if(S.sites.some((s,i)=>s.name.toLowerCase()===n.toLowerCase()&&!(sMode==='ren'&&i===S.cur))){$('se').textContent='A site with this name already exists';return}
+ if(sMode==='add'){mutate({t:'addSite',name:n});S.cur=Math.max(0,si_(S,n))}else mutate({t:'renSite',from:cur().name,to:n});$('sdl').close();render()};
+$('m3').onclick=()=>{$('mdl').close();const one=S.sites.length<2;$('dtx').textContent=one?'At least one site must remain, so this site cannot be deleted.':'“'+cur().name+'” and its '+cur().rows.length+' entries will be deleted permanently. Export to Excel first if you need a copy.';$('dd').hidden=one;$('ddl').showModal()};
+$('dc').onclick=()=>$('ddl').close();$('dd').onclick=()=>{const nm=cur().name;S.cur=0;$('ddl').close();mutate({t:'delSite',name:nm})};
+$('m7').onclick=()=>{const d=document.documentElement,dk=getComputedStyle(d).getPropertyValue('--bg').trim()==='#15171a';d.dataset.theme=dk?'light':'dark'};
+async function dl(name,data){let d=null;try{d=await claude.use('downloads')}catch(e){}
+ if(d){try{await d.save({filename:name,data})}catch(e){if(e&&e.code!=='declined')alert('Could not save: '+(e.message||e))}return}
+ const b=data instanceof Blob?data:new Blob([data]);const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove()}
+function sheetRows(s){const AI=advInfo(s.rows);const o=[H];let b=0;[...s.rows].sort((x,y)=>(x.date||'').localeCompare(y.date||'')||x.id-y.id).forEach(r=>{
+ if(r.adv){b+=r.adv;o.push([fd(r.date),r.cat||'Site Advance',(r.desc||'')+(AI[r.id].has?(r.desc?' · ':'')+'Prev. balance '+AI[r.id].carry+' carried, total '+AI[r.id].avail:''),r.nos,r.to,'',r.adv,b]);[...(r.br||[])].sort((p,q)=>(p.date||r.date||'').localeCompare(q.date||r.date||'')).forEach(l=>{b-=l.amt;o.push([fd(l.date||r.date),l.cat,'From site advance',l.nos||' ',l.to||r.to,l.amt,'',b])})}
+ else o.push([fd(r.date),r.cat,r.desc,r.nos,r.to,r.amt||'','',''])});
+ const t=tot(s.rows);o.push(['','','','','Total',t.e,t.a,t.b]);return o}
+const xs=(y,m,d)=>Math.round((Date.UTC(y,m-1,d)-Date.UTC(1899,11,30))/864e5);
+function xlSheet(s){const AI=advInfo(s.rows);const o=[[s.name],H];let b=0,nn=0;const dr=[];
+ const add=r=>{o.push(r);dr.push(o.length-1)};
+ [...s.rows].sort((x,y)=>(x.date||'').localeCompare(y.date||'')||x.id-y.id).forEach(r=>{
+  const p=(r.date||'').split('-').map(Number),dt=r.date?xs(p[0],p[1],p[2]):null;const q=parseFloat(r.nos);if(q)nn+=q;
+  if(r.adv){b+=r.adv;add([dt,r.cat||'Site Advance',((r.desc||'')+(AI[r.id].has?(r.desc?' · ':'')+'Prev. balance '+AI[r.id].carry+' carried, total '+AI[r.id].avail:''))||null,r.nos?(+r.nos||r.nos):null,r.to||null,null,r.adv,b]);[...(r.br||[])].sort((p,q)=>(p.date||r.date||'').localeCompare(q.date||r.date||'')).forEach(l=>{b-=l.amt;nn+=parseFloat(l.nos)||0;const d=l.date||r.date,parts=(d||'').split('-').map(Number),ldate=d?xs(parts[0],parts[1],parts[2]):null;add([ldate,l.cat||null,'From site advance',l.nos?(+l.nos||l.nos):null,l.to||r.to||null,l.amt,null,b])})}
+  else add([dt,r.cat||null,r.desc||null,r.nos?(+r.nos||r.nos):null,r.to||null,r.amt||null,null,null])});
+ const t=tot(s.rows);o.push([]);o.push(['Total',null,null,nn||null,null,t.e,t.a,t.b]);
+ const ws=XLSX.utils.aoa_to_sheet(o);
+ dr.forEach(i=>{const c=ws[XLSX.utils.encode_cell({r:i,c:0})];if(c&&c.t==='n')c.z='dd-mmm-yy'});
+ for(let i=2;i<o.length;i++)for(const c of [5,6,7]){const x=ws[XLSX.utils.encode_cell({r:i,c})];if(x&&x.t==='n')x.z='#,##0'}
+ ws['!cols']=[{wch:12},{wch:22},{wch:26},{wch:7},{wch:30},{wch:13},{wch:12},{wch:13}];return ws}
+function xlBook(list){const wb=XLSX.utils.book_new();
+ list.forEach(s=>XLSX.utils.book_append_sheet(wb,xlSheet(s),s.name.replace(/[\\\/?*\[\]:]/g,'').slice(0,31)||'Site'));
+ if(list.length>1){const T=tot(list.flatMap(s=>s.rows));const sm=[['Site','Advance','Total spent','Balance'],...list.map(s=>{const t=tot(s.rows);return[s.name,t.a,t.e,t.b]}),['All sites',T.a,T.e,T.b]];const w=XLSX.utils.aoa_to_sheet(sm);w['!cols']=[{wch:22},{wch:14},{wch:14},{wch:14}];XLSX.utils.book_append_sheet(wb,w,'Summary')}
+ return new Uint8Array(XLSX.write(wb,{type:'array',bookType:'xlsx'}))}
+$('m5').onclick=()=>dl('Star_Builders_P_L_Report.xlsx',xlBook(S.sites));
+$('m9').onclick=()=>dl(cur().name+'.xlsx',xlBook([cur()]));
+$('m6').onclick=()=>dl(cur().name+'.csv',new Blob([XLSX.utils.sheet_to_csv(XLSX.utils.aoa_to_sheet(sheetRows(cur())))],{type:'text/csv'}));
+// import: any column headings are mapped to the standard ones
+const AL={date:['date','dt','day','on'],cat:['paidfor','category','item','head','purpose','particulars','paidfor'],desc:['description','descriptionofexpense','details','desc','narration','remarks'],nos:['nos','no','qty','quantity','number'],to:['paidto','payee','vendor','party','name','to'],amt:['amount','amountrs','expense','expenses','debit','paid','cost','spent'],adv:['advance','advancereceived','credit','received']};
+const nk=s=>String(s||'').toLowerCase().replace(/[^a-z]/g,'');
+function mapCol(h){const k=nk(h);for(const f in AL)if(AL[f].includes(k))return f;return null}
+const num=v=>{const n=parseFloat(String(v??'').replace(/[₹,\s]|rs\.?/gi,''));return isNaN(n)?0:n};
+function pd(v){if(v instanceof Date&&!isNaN(v))return new Date(v.getTime()-v.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+ const s=String(v||'').trim();let m=s.match(/^(\d{1,2})[-\/ ]([A-Za-z]{3})[a-z]*[-\/ ](\d{2,4})$/);if(m){const y=m[3].length==2?'20'+m[3]:m[3];return y+'-'+String(MO.findIndex(x=>x.toLowerCase()==m[2].toLowerCase())+1).padStart(2,'0')+'-'+m[1].padStart(2,'0')}
+ m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{2,4})$/);if(m){const y=m[3].length==2?'20'+m[3]:m[3];return y+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0')}
+ return /^\d{4}-\d{2}-\d{2}/.test(s)?s.slice(0,10):''}
+$('m4').onclick=()=>$('fi').click();
+$('fi').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{
+ const wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true});let n=0,sk=[],BK=[];
+ wb.SheetNames.forEach(nm=>{const a=XLSX.utils.sheet_to_json(wb.Sheets[nm],{header:1,raw:true,defval:''});
+  let hi=a.findIndex(r=>r.filter(c=>mapCol(c)).length>=3);if(hi<0){sk.push(nm);return}
+  const cm=a[hi].map(mapCol),rows=[],hasCat=cm.includes('cat');
+  a.slice(hi+1).forEach(r=>{const o={date:'',cat:'',desc:'',nos:'',to:'',amt:0,adv:0};cm.forEach((f,i)=>{if(!f)return;const v=r[i];if(f=='date')o.date=pd(v);else if(f=='amt'||f=='adv')o[f]=num(v);else o[f]=String(v??'').trim()});
+   if(!hasCat&&o.desc){o.cat=o.desc;o.desc=''}
+   if(o.date&&(o.amt||o.adv))rows.push({id:newId(),...o})});
+  const ex=S.sites.find(s=>s.name.toLowerCase()==nm.toLowerCase());BK.push({name:ex?ex.name:nm,rows});n+=rows.length});
+ if(BK.length)mutate({t:'bulk',sites:BK});S.cur=0;$('mdl').close();render();alert('Imported '+n+' entries.'+(sk.length?' Skipped (no recognisable headings): '+sk.join(', '):''))}catch(x){alert('Could not read that file.')}e.target.value=''};
+/* ====== SYNC ENGINE ====== */
+let PW='',VER=-1,QUEUE=ld('sb_q')||[],BUSY=false,LASTOK=0,OFFLINE=false,TT=0;
+try{PW=sessionStorage.getItem('sb_pw')||''}catch(e){}
+const saveQ=()=>{try{localStorage.setItem('sb_q',JSON.stringify(QUEUE))}catch(e){}};
+const si_=(st,n)=>st.sites.findIndex(x=>x.name.toLowerCase()===String(n).toLowerCase());
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(TT);TT=setTimeout(()=>t.classList.remove('on'),2600)}
+function applyOp(st,op){
+ const site=n=>{let i=si_(st,n);if(i<0){st.sites.push({name:n,rows:[]});i=st.sites.length-1}return st.sites[i]};
+ const put=(s,r)=>{const j=s.rows.findIndex(x=>x.id==r.id);if(j>=0)s.rows[j]=r;else s.rows.push(r)};
+ if(op.t==='put')put(site(op.site),op.row);
+ else if(op.t==='del')st.sites.forEach(s=>{s.rows=s.rows.filter(x=>x.id!=op.id)});
+ else if(op.t==='addSite'){if(si_(st,op.name)<0)st.sites.push({name:op.name,rows:[]})}
+ else if(op.t==='renSite'){const i=si_(st,op.from);if(i>=0&&si_(st,op.to)<0)st.sites[i].name=op.to}
+ else if(op.t==='delSite'){const i=si_(st,op.name);if(i>=0&&st.sites.length>1)st.sites.splice(i,1)}
+ else if(op.t==='bulk'||op.t==='seed')op.sites.forEach(x=>{const s=site(x.name);x.rows.forEach(r=>put(s,r))})}
+function setSt(){const e=$('sync');if(!ONLINE||!PW){e.textContent='';return}
+ e.textContent=QUEUE.length?(OFFLINE?'⚠ Offline – '+QUEUE.length+' waiting to upload':'⟳ Saving…'):OFFLINE?'⚠ Offline – showing saved copy':'● Synced '+new Date(LASTOK||Date.now()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+ e.style.color=OFFLINE?'var(--rd)':'var(--ac)'}
+async function call(b,pw){const r=await fetch(API,{method:'POST',body:JSON.stringify({pw:pw===undefined?PW:pw,...b})});return await r.json()}
+function install(data){const nm=S.sites[S.cur]&&S.sites[S.cur].name;
+ const st={cur:0,sites:data.sites.map(s=>({name:s.name,rows:s.rows.map(r=>({...r}))}))};
+ QUEUE.forEach(o=>applyOp(st,o));if(!st.sites.length)st.sites=[{name:'New site',rows:[]}];
+ const i=nm?si_(st,nm):-1;st.cur=i<0?0:i;S=st;save();render()}
+function mutate(op){applyOp(S,op);save();if(ONLINE){QUEUE.push(op);saveQ();setSt();flush()}render()}
+async function flush(){if(!ONLINE||BUSY||!PW)return;BUSY=true;let sent=0;
+ try{for(;;){const snap=QUEUE.slice();
+   const res=await call(snap.length?{ops:snap}:{read:1,ver:VER});
+   if(res.err==='auth'){try{sessionStorage.removeItem('sb_role');sessionStorage.removeItem('sb_pw')}catch(e){}alert('The password was changed or expired. Please log in again.');location.reload();return}
+   if(!res.ok)throw new Error(res.err||'server');
+   OFFLINE=false;QUEUE.splice(0,snap.length);saveQ();sent+=snap.length;
+   if(res.errs&&res.errs.length)alert('Some changes were not saved:\n'+res.errs.join('\n'));
+   if(res.data){VER=res.ver;install(res.data)}
+   LASTOK=Date.now();if(!QUEUE.length)break}
+  if(sent)toast('Saved to shared database ✓')}
+ catch(e){OFFLINE=true;if(QUEUE.length)toast('No internet – saved on this device, will upload automatically')}
+ BUSY=false;setSt()}
+async function auth(pw){
+ if(!ONLINE){const x=await sha(pw);return x===PH.a?{role:'admin',pw}:x===PH.u?{role:'user',pw}:{err:'Wrong password'}}
+ try{const res=await call({read:1,ver:-1},pw);
+  if(res.err==='auth')return{err:'Wrong password'};
+  if(!res.ok)return{err:'Server problem: '+res.err};
+  return{role:res.role,pw,res}}
+ catch(e){const x=await sha(pw);const r=x===PH.a?'admin':x===PH.u?'user':'';
+  if(!r)return{err:'Wrong password (or no internet)'};
+  if(!okS(ld('sb_cache')))return{err:'No internet connection. Connect once and try again.'};
+  OFFLINE=true;return{role:r,pw,offline:true}}}
+async function enter(a){PW=a.pw;try{sessionStorage.setItem('sb_pw',PW)}catch(e){}
+ if(a.res){VER=a.res.ver;const d=a.res.data;
+  if(!d.sites.length){if(a.role==='admin')await seed();else{alert('The shared database is still empty. Ask the admin to log in once to upload the data.');PW='';try{sessionStorage.removeItem('sb_pw')}catch(e){}return}}
+  else install(d)}
+ else if(a.offline&&okS(ld('sb_cache'))){S=ld('sb_cache');render()}
+ setRole(a.role);flush()}
+async function seed(){const L=ld('sitebook3');
+ if(!okS(L)){install({sites:[]});toast('Shared database is empty – use Menu → Import Excel');return}
+ const n=L.sites.reduce((s,x)=>s+x.rows.length,0);
+ if(!confirm('The shared database is empty.\n\nUpload the data saved on this device ('+n+' entries in '+L.sites.length+' sites) so everyone can use it?')){install({sites:[]});return}
+ try{const res=await call({ops:[{t:'seed',sites:L.sites.map(s=>({name:s.name,rows:s.rows.map(r=>({...r,id:+r.id}))}))}]});
+  if(res.errs&&res.errs.length)alert(res.errs.join('\n'));
+  if(res.ok&&res.data){VER=res.ver;install(res.data);toast('Uploaded to shared database ✓');return}}catch(e){}
+ alert('Upload failed. Please try again from Menu → Upload this device\'s data.');install({sites:[]})}
+$('m11').onclick=async()=>{$('mdl').close();if(!ONLINE){alert('The shared database is not set up yet.');return}await seed()};
+$('sync').onclick=()=>{if(ONLINE&&PW){VER=-1;flush()}};
+setInterval(()=>{if(ONLINE&&PW&&!document.hidden)flush()},30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ONLINE&&PW)flush()});
+window.addEventListener('online',()=>{if(ONLINE&&PW)flush()});
+/* PASSWORDS: u = app password, a = admin (reports) password. These are SHA-256 hashes of 'starbuilders:' + password.
+   To change one, make a new hash (see instructions) and replace the matching value below. */
+const PH={u:'bef79138a21127a8b1631fd45caabd85f5b3a661e593f2ad5a6be52891ef2f53',a:'997c02d779750e97e0a99cb7535036d3f3374e22781d11ee41222f778ce2e0ea'};
+async function sha(s){try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('starbuilders:'+s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){return ''}}
+function applyRole(){document.body.classList.toggle('adm',ADMIN);$('role').textContent=ADMIN?'Admin':'';if(!ADMIN)tab(1)}
+function setRole(r){ADMIN=r==='admin';try{sessionStorage.setItem('sb_role',r)}catch(e){}$('lock').hidden=true;applyRole();render()}
+$('lb').onclick=async()=>{const b=$('lb');b.disabled=true;$('le').textContent=ONLINE?'Checking…':'';const a=await auth($('lp').value);$('lp').value='';b.disabled=false;
+ if(a.err){$('le').textContent=a.err;return}$('le').textContent='';await enter(a)};
+$('lp').onkeydown=e=>{if(e.key==='Enter')$('lb').click()};
+function askAdmin(){$('ap').value='';$('ae').textContent='';$('adl').showModal();$('ap').focus()}
+$('ab').onclick=async()=>{const a=await auth($('ap').value);if(a.err||a.role!=='admin'){$('ae').textContent=a.err&&a.err!=='Wrong password'?a.err:'Wrong admin password';return}$('adl').close();await enter(a);tab(2)};
+$('ap').onkeydown=e=>{if(e.key==='Enter')$('ab').click()};$('ac').onclick=()=>$('adl').close();
+$('m8').onclick=()=>{try{sessionStorage.removeItem('sb_role');sessionStorage.removeItem('sb_pw')}catch(e){}location.reload()};
+$('m10').onclick=()=>{$('mdl').close();askAdmin()};
+let R0='';try{R0=sessionStorage.getItem('sb_role')||''}catch(e){}
+if(R0&&(!ONLINE||PW)){ADMIN=R0==='admin';$('lock').hidden=true}
+applyRole();render();setSt();if(ONLINE&&PW&&R0){VER=-1;flush()};
+</script></body></html>
