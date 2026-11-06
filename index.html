@@ -37,7 +37,7 @@ body:not(.adm) #v2,body:not(.adm) #m9,body.adm #m10,body:not(.adm) #m1,body:not(
 #lock{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}#lock[hidden]{display:none}
 table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}th{color:var(--mu);font-weight:600;white-space:nowrap}td.n,th.n{text-align:right;white-space:nowrap}tr.tt td{font-weight:700}
 details.sec>summary{cursor:pointer;font-size:15px;margin-bottom:8px}.pr{padding:7px 10px;font-size:13px}.rb{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.pa-row{background:rgba(245,166,35,.18)!important;border-color:#e8a317!important}tr.pa-row td{background:rgba(245,166,35,.2)}.pab{background:#e8a317;color:#1d1f23;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap}
+body:not(.adm) #qa{display:none!important}
 .menu button{width:100%;margin-bottom:8px;text-align:left}
 #toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:#1d1f23;color:#fff;padding:10px 16px;border-radius:20px;font-size:14px;z-index:99;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center}#toast.on{opacity:1}
 #sync{font-size:12px;cursor:pointer}body:not(.adm) #m11{display:none!important}
@@ -55,7 +55,7 @@ details.sec>summary{cursor:pointer;font-size:15px;margin-bottom:8px}.pr{padding:
 <button class="p fab" id="add">+ Add entry</button>
 
 <dialog id="dlg"><b id="dt">Add entry</b>
-<label>What is this?</label><div class="seg"><button id="ty0" class="on">Expense (paid out)</button><button id="ty1">Site advance</button><button id="ty2">Personal advance</button></div><div class="mu" id="tyh" style="margin-top:6px"></div>
+<label>What is this?</label><div class="seg"><button id="ty0" class="on">Expense (paid out)</button><button id="ty1">Site Advance (given to site person)</button></div>
 <div class="two"><div><label>Date</label><input type="date" id="fd"></div><div><label>Amount (₹)</label><input type="number" inputmode="decimal" id="fa" placeholder="0"></div></div>
 <label>Paid for (Labour, Steel, Wood…)</label><input id="fc" list="cl" autocomplete="off"><datalist id="cl"></datalist>
 <label>Description (optional)</label><input id="fx">
@@ -94,9 +94,6 @@ const fd=d=>{if(!d)return'';const[y,m,x]=d.split('-');return x+'-'+MO[+m-1]+'-'+
 const cur=()=>S.sites[S.cur];
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const brs=r=>(r.br||[]).reduce((s,l)=>s+(+l.amt||0),0);
-function normCat(c){c=String(c||'').trim();return /^labou?rs?\s*payments?$/i.test(c)?'Labour Payment':c}
-const PA=r=>/personal\s*advance/i.test(r.cat||'');
-function advInfo(rows){const m={},g={};rows.filter(r=>r.adv).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||a.id-b.id).forEach(r=>{const k=(r.to||'').trim().toLowerCase(),p=g[k],carry=p?p.bal:0,used=brs(r),avail=r.adv+carry;if(p)p.next=true;g[k]=m[r.id]={carry,has:!!p,avail,used,bal:avail-used,next:false}});return m}
 const flat=rows=>rows.flatMap(r=>[r,...(r.br||[]).map(l=>({site:r.site,date:r.date,cat:l.cat,desc:'From site advance',to:l.to||r.to,amt:+l.amt||0,adv:0}))]);
 const tot=rows=>{const a=rows.reduce((s,r)=>s+r.adv,0),u=rows.reduce((s,r)=>s+brs(r),0),e=rows.reduce((s,r)=>s+r.amt,0)+u;return{a,e,b:a-u}};
 function withBal(rows){let b=0;return[...rows].sort((x,y)=>(x.date||'').localeCompare(y.date||'')||x.id-y.id).map(r=>({...r,bal:b+=r.adv-brs(r)}))}
@@ -104,36 +101,29 @@ function render(){
  $('site').innerHTML=S.sites.map((s,i)=>`<option value="${i}" ${i==S.cur?'selected':''}>${esc(s.name)}</option>`).join('');
  const t=tot(cur().rows);$('sa').textContent=inr(t.a);$('se').textContent=inr(t.e);$('sb').textContent=inr(t.b);$('sb').className=t.b<0?'out':'';
  const q=$('q').value.toLowerCase();
- const AI=advInfo(cur().rows);const all=[...cur().rows].sort((a,b)=>(a.date||'').localeCompare(b.date||'')||a.id-b.id).reverse();
- const items=[];all.forEach(r=>{items.push({r});[...(r.br||[])].sort((a,b)=>(a.date||r.date||'').localeCompare(b.date||r.date||'')).forEach(l=>items.push({r,l}))});
- const txt=x=>(x.l?[x.l.cat,x.l.to,x.r.to,'site advance']:[x.r.cat,x.r.desc,x.r.to,x.r.nos]).join(' ').toLowerCase();
- const rows=items.filter(x=>!q||txt(x).includes(q));
- $('list').innerHTML=rows.length?rows.map(x=>{const r=x.r;if(x.l)return`<div class="row" data-id="${r.id}" style="margin-left:18px;border-left:3px solid var(--ac)"><div class="l"><div class="t">${esc(x.l.cat)||'(no item)'}</div><div class="s">${fd(x.l.date||r.date)}${x.l.to?' · '+esc(x.l.to):''}${x.l.nos?' · Nos '+esc(x.l.nos):''} · from site advance (${esc(r.to||'advance')})</div></div><div class="r"><div class="t">${inr(x.l.amt)}</div></div></div>`;
- const I=AI[r.id],blk=(k,v,c)=>`<div><div class="s">${k}</div><div class="t ${c||''}">${inr(v)}</div></div>`;
- if(r.adv)return`<div class="row" data-id="${r.id}" style="flex-direction:column;gap:6px"><div class="l"><div class="t">${esc(r.cat)||'Site Advance'} <span class="mu">(site advance)</span></div><div class="s">${fd(r.date)}${r.to?' · '+esc(r.to):''}${r.desc?' · '+esc(r.desc):''}${r.nos?' · Nos '+esc(r.nos):''}</div></div><div style="display:flex;gap:16px;flex-wrap:wrap">${blk('Advance',r.adv,'in')}${I.has?blk('Previous balance',I.carry)+blk('Total',I.avail,'in'):''}${blk('Used',I.used)}${blk('Balance',I.bal,I.bal<0?'out':'')}</div>${I.next?'<div class="s">Balance carried forward to the next advance</div>':''}</div>`;
- return`<div class="row${PA(r)?' pa-row':''}" data-id="${r.id}"><div class="l"><div class="t">${esc(r.cat)||'(no item)'}${PA(r)?' <span class="pab">PERSONAL ADVANCE</span>':''}</div><div class="s">${fd(r.date)}${r.to?' · '+esc(r.to):''}${r.desc?' · '+esc(r.desc):''}${r.nos?' · Nos '+esc(r.nos):''}</div></div><div class="r"><div class="t">${inr(r.amt)}</div></div></div>`}).join(''):'<p class="mu">No entries yet. Tap “+ Add entry”.</p>';
+ const rows=withBal(cur().rows).reverse().filter(r=>!q||[r.cat,r.desc,r.to,r.nos].join(' ').toLowerCase().includes(q));
+ $('list').innerHTML=rows.length?rows.map(r=>`<div class="row" data-id="${r.id}"><div class="l"><div class="t">${esc(r.cat)||'(no item)'}${r.adv?' <span class="mu">(site advance)</span>':''}</div><div class="s">${fd(r.date)}${r.to?' · '+esc(r.to):''}${r.desc?' · '+esc(r.desc):''}${r.nos?' · Nos '+esc(r.nos):''}</div>${r.adv&&(r.br||[]).length?'<div class="s">'+r.br.map(l=>esc(l.cat||'item')+' '+inr(l.amt)).join(', ')+'</div>':''}</div><div class="r"><div class="t ${r.adv?'in':''}">${r.adv?inr(r.adv):inr(r.amt)}</div><div class="s">${r.adv?'Balance '+inr(r.adv-brs(r)):''}</div></div></div>`).join(''):'<p class="mu">No entries yet. Tap “+ Add entry”.</p>';
  const u=k=>[...new Set(S.sites.flatMap(s=>s.rows.map(r=>r[k])).filter(Boolean))].sort();
  $('cl').innerHTML=u('cat').map(x=>`<option value="${esc(x)}">`).join('');$('pl').innerHTML=u('to').map(x=>`<option value="${esc(x)}">`).join('');
  if(!$('v2').hidden)reports();
 }
 let edit=null,ty=0,BR=[],ADMIN=false;
-function formAdv(){const id=edit||1e12,rows=cur().rows.filter(r=>r.id!==edit);rows.push({id,date:$('fd').value,to:$('fp').value,adv:+$('fa').value||1e-9,br:BR.map(l=>({amt:+l.amt||0}))});return advInfo(rows)[id]}
-function brInfo(){const u=BR.reduce((s,l)=>s+(+l.amt||0),0),f=formAdv();$('brs').innerHTML=(f.has?'Previous balance <b>'+inr(f.carry)+'</b> carried forward · Total available <b>'+inr(f.avail)+'</b><br>':'')+'Used <b>'+inr(u)+'</b> · Balance <b class="'+(f.avail-u<0?'out':'in')+'">'+inr(f.avail-u)+'</b>'}
-function drawBR(){$('brl').innerHTML=BR.map((l,i)=>`<div class="sec" style="padding:8px;margin-bottom:6px"><div style="display:flex;gap:6px"><input list="cl" placeholder="Item (Steel, Cement, Tea…)" value="${esc(l.cat||'')}" data-i="${i}" data-k="cat"><button class="x" data-i="${i}" aria-label="Remove">×</button></div><div class="two" style="margin-top:6px"><input inputmode="decimal" placeholder="Nos / qty (bags…)" value="${esc(l.nos||'')}" data-i="${i}" data-k="nos"><input type="number" inputmode="decimal" placeholder="Amount ₹" value="${l.amt??''}" data-i="${i}" data-k="amt"></div><div class="two" style="margin-top:6px"><input type="date" value="${l.date||''}" data-i="${i}" data-k="date" aria-label="Date"><input list="pl" placeholder="Paid to / note" value="${esc(l.to||'')}" data-i="${i}" data-k="to"></div></div>`).join('');brInfo()}
+function brInfo(){const u=BR.reduce((s,l)=>s+(+l.amt||0),0),a=+$('fa').value||0;$('brs').innerHTML='Used <b>'+inr(u)+'</b> · Balance <b class="'+(a-u<0?'out':'in')+'">'+inr(a-u)+'</b>'}
+function drawBR(){$('brl').innerHTML=BR.map((l,i)=>`<div class="sec" style="padding:8px;margin-bottom:6px"><div style="display:flex;gap:6px"><input list="cl" placeholder="Item (Steel, Tea, Labour…)" value="${esc(l.cat||'')}" data-i="${i}" data-k="cat"><input type="number" inputmode="decimal" placeholder="₹" style="width:110px" value="${l.amt??''}" data-i="${i}" data-k="amt"><button class="x" data-i="${i}" aria-label="Remove">×</button></div><input list="pl" placeholder="Paid to / note" style="margin-top:6px" value="${esc(l.to||'')}" data-i="${i}" data-k="to"></div>`).join('');brInfo()}
 $('brl').oninput=e=>{const d=e.target.dataset;if(d.k){BR[+d.i][d.k]=e.target.value;brInfo()}};
 $('brl').onclick=e=>{const b=e.target.closest('.x');if(b){BR.splice(+b.dataset.i,1);drawBR()}};
-$('bradd').onclick=()=>{BR.push({cat:'',to:'',amt:'',date:$('fd').value});drawBR()};$('fa').oninput=brInfo;$('fp').oninput=brInfo;$('fd').onchange=brInfo;
-function setTy(n){ty=n;[0,1,2].forEach(i=>$('ty'+i).className=n===i?'on':'');$('brbox').hidden=n!==1;$('tyh').textContent=['Money paid out for site work (materials, labour, etc.).','Money given to a site person to spend on site. Add a break-up below.','Advance given to a person for personal use (e.g. salary advance). Shown highlighted.'][n];if(n===2&&!$('fc').value.trim())$('fc').value='Personal advance'}
+$('bradd').onclick=()=>{BR.push({cat:'',to:'',amt:''});drawBR()};$('fa').oninput=brInfo;
+function setTy(n){ty=n;$('ty0').className=n?'':'on';$('ty1').className=n?'on':'';$('brbox').hidden=!n}
 function open_(id){edit=id;const r=id?cur().rows.find(x=>x.id==id):null;$('dt').textContent=r?'Edit entry':'Add entry';
- setTy(r&&r.adv?1:(r&&PA(r)?2:0));$('fd').value=r?r.date:new Date().toISOString().slice(0,10);$('fa').value=r?(r.adv||r.amt):'';
- $('fc').value=r?r.cat:'';$('fx').value=r?r.desc:'';$('fp').value=r?r.to:'';$('fn').value=r?r.nos:'';$('fdel').hidden=!r||!ADMIN;BR=r&&r.br?r.br.map(x=>({...x,date:x.date||r.date})):[];drawBR();$('dlg').showModal()}
-$('add').onclick=()=>open_(null);$('ty0').onclick=()=>setTy(0);$('ty1').onclick=()=>setTy(1);$('ty2').onclick=()=>setTy(2);$('fcan').onclick=()=>$('dlg').close();
+ setTy(r&&r.adv?1:0);$('fd').value=r?r.date:new Date().toISOString().slice(0,10);$('fa').value=r?(r.adv||r.amt):'';
+ $('fc').value=r?r.cat:'';$('fx').value=r?r.desc:'';$('fp').value=r?r.to:'';$('fn').value=r?r.nos:'';$('fdel').hidden=!r||!ADMIN;BR=r&&r.br?r.br.map(x=>({...x})):[];drawBR();$('dlg').showModal()}
+$('add').onclick=()=>open_(null);$('ty0').onclick=()=>setTy(0);$('ty1').onclick=()=>setTy(1);$('fcan').onclick=()=>$('dlg').close();
 $('list').onclick=e=>{const r=e.target.closest('.row');if(r)open_(+r.dataset.id)};
 $('fsv').onclick=()=>{const a=+$('fa').value;if(!a||!$('fd').value){alert('Please enter the date and amount.');return}
- if(ty===1&&BR.reduce((s,l)=>s+(+l.amt||0),0)>formAdv().avail&&!confirm('Breakup is more than the available advance. Save anyway?'))return;
- const o={date:$('fd').value,cat:normCat(ty===2&&!$('fc').value.trim()?'Personal advance':$('fc').value),desc:$('fx').value.trim(),to:$('fp').value.trim(),nos:$('fn').value.trim(),amt:ty===1?0:a,adv:ty===1?a:0,br:ty===1?BR.filter(l=>+l.amt>0).map(l=>({nos:String(l.nos||'').trim(),date:l.date||$('fd').value,cat:normCat(l.cat),desc:'',to:(l.to||'').trim(),amt:+l.amt})):[]};
+ if(ty&&BR.reduce((s,l)=>s+(+l.amt||0),0)>a&&!confirm('Breakup is more than the advance amount. Save anyway?'))return;
+ const o={date:$('fd').value,cat:$('fc').value.trim(),desc:$('fx').value.trim(),to:$('fp').value.trim(),nos:$('fn').value.trim(),amt:ty?0:a,adv:ty?a:0,br:ty?BR.filter(l=>+l.amt>0).map(l=>({cat:(l.cat||'').trim(),desc:'',to:(l.to||'').trim(),amt:+l.amt})):[]};
  const old=edit?cur().rows.find(x=>x.id==edit):null;const row={...(old||{}),...o,id:old?old.id:(edit||newId())};
- $('dlg').close();mutate({t:'put',site:cur().name,row})};
+ $('dlg').close();mutate({t:'put',site:cur().name,row});toast(ONLINE?'Saving…':'Saved on this device')};
 $('fdel').onclick=()=>{if(confirm('Delete this entry?')){$('dlg').close();mutate({t:'del',id:edit})}};
 $('site').onchange=e=>{S.cur=+e.target.value;save();render()};$('q').oninput=render;
 function tab(n){if(n==2&&!ADMIN){askAdmin();return}$('v1').hidden=n!=1;$('v2').hidden=n!=2;$('t1').className=n==1?'on':'';$('t2').className=n==2?'on':'';$('add').hidden=n!=1;if(n==2)reports()}
@@ -155,22 +145,20 @@ function repData(){
   const r=it.map(x=>[x[0],...ss.map(n=>m[x[0]]&&m[x[0]][n]||null),x[1]]);
   tb.push({t:'Item x Site',h:['Item',...ss,'Total'],f:'s'+'m'.repeat(ss.length+1),rows:[...r,['Total',...ss.map(n=>fl.filter(y=>y.site===n).reduce((s,y)=>s+y.amt,0)),T.e]],tot:1})}
  const ad=rows.filter(r=>r.adv).sort((a,b)=>a.date.localeCompare(b.date));
- const AIs={};S.sites.forEach(x=>AIs[x.name]=advInfo(x.rows));const gv=ad.reduce((s,r)=>s+r.adv,0),us=ad.reduce((s,r)=>s+brs(r),0);
- tb.push({t:'Site advances',o:ad.length>0,h:['Date','Site','Person','Given','Previous balance','Total available','Used','Balance'],f:'dssmmmmm',rows:ad.length?[...ad.map(r=>{const I=AIs[r.site][r.id];return[r.date,r.site,r.to||'-',r.adv,I.has?I.carry:null,I.avail,I.used,I.bal]}),['Total','','',gv,null,null,us,gv-us]]:[],tot:1});
- tb.push({t:'Advance break-up lines',h:['Date','Site','Person','Item','Nos','Amount'],f:'dssssm',rows:(()=>{const L=ad.flatMap(r=>(r.br||[]).map(l=>[l.date||r.date,r.site,r.to||'-',l.cat||'-',l.nos||'',+l.amt]));return L.length?[...L,['Total','','','',L.reduce((s,x)=>s+(parseFloat(x[4])||0),0)||'',L.reduce((s,x)=>s+x[5],0)]]:[]})(),tot:1});
- tb.push({t:'Personal advances',hl:1,o:fl.some(r=>r.amt&&PA(r)),h:['Date','Site','Person','Note','Amount'],f:'dsssm',rows:(()=>{const L=fl.filter(r=>r.amt&&PA(r)).sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(r=>[r.date,r.site,r.to||'-',r.desc||'',r.amt]);return L.length?[...L,['Total','','','',L.reduce((s,x)=>s+x[4],0)]]:[]})(),tot:1});
+ tb.push({t:'Site advances',o:ad.length>0,h:['Date','Site','Person','Given','Used','Balance'],f:'dssmmm',rows:ad.length?[...ad.map(r=>[r.date,r.site,r.to||'-',r.adv,brs(r),r.adv-brs(r)]),['Total','','',ad.reduce((s,r)=>s+r.adv,0),ad.reduce((s,r)=>s+brs(r),0),ad.reduce((s,r)=>s+r.adv-brs(r),0)]]:[],tot:1});
+ tb.push({t:'Advance break-up lines',h:['Date','Site','Person','Item','Amount'],f:'dsssm',rows:(()=>{const L=ad.flatMap(r=>(r.br||[]).map(l=>[r.date,r.site,r.to||'-',l.cat||'-',+l.amt]));return L.length?[...L,['Total','','','',L.reduce((s,x)=>s+x[4],0)]]:[]})(),tot:1});
  tb.push({t:'Top 10 expenses',h:['Date','Site','Item','Paid to','Amount'],f:'dsssm',rows:(()=>{const L=fl.filter(r=>r.amt).sort((a,b)=>b.amt-a.amt).slice(0,10).map(r=>[r.date,r.site,r.cat||'-',r.to||'-',r.amt]);return L.length?[...L,['Total (top 10)','','','',L.reduce((s,x)=>s+x[4],0)]]:[]})(),tot:1});
  tb.push({t:'Full statement',h:['Date','Site','Item','Description','Paid to','Nos','Amount','Advance'],f:'dssssSmm'.replace('S','s'),rows:(()=>{const L=[...fl].sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(r=>[r.date,r.site,r.cat||'',r.desc||'',r.to||'',r.nos||'',r.amt||null,r.adv||null]);return L.length?[...L,['Total','','','','',L.reduce((s,x)=>s+(parseFloat(x[5])||0),0)||'',L.reduce((s,x)=>s+(x[6]||0),0),L.reduce((s,x)=>s+(x[7]||0),0)]]:[]})(),tot:1});
  return{tb,T,n:rows.length}}
 const cell=(v,k)=>v==null||v===''?'':k==='m'?inr(v):k==='p'?v+'%':k==='d'?(/^\d{4}-/.test(v)?fd(v):esc(v)):esc(v);
 const isn=k=>k==='m'||k==='p'||k==='n';
-function tHtml(t){return '<div style="overflow-x:auto"><table><tr>'+t.h.map((x,i)=>`<th class="${isn(t.f[i])?'n':''}">${esc(x)}</th>`).join('')+'</tr>'+t.rows.map((r,ri)=>`<tr class="${(t.tot&&ri==t.rows.length-1?'tt':'')+(/^personal\s*advance/i.test(String(r[0]))?' pa-row':'')}">`+r.map((v,i)=>`<td class="${isn(t.f[i])?'n':''}">${cell(v,t.f[i])}</td>`).join('')+'</tr>').join('')+'</table></div>'}
+function tHtml(t){return '<div style="overflow-x:auto"><table><tr>'+t.h.map((x,i)=>`<th class="${isn(t.f[i])?'n':''}">${esc(x)}</th>`).join('')+'</tr>'+t.rows.map((r,ri)=>`<tr class="${t.tot&&ri==t.rows.length-1?'tt':''}">`+r.map((v,i)=>`<td class="${isn(t.f[i])?'n':''}">${cell(v,t.f[i])}</td>`).join('')+'</tr>').join('')+'</table></div>'}
 function reports(){if(!ADMIN)return;const D=repData(),T=D.T;
  $('v2').innerHTML=`<div class="sec"><h2>Report filters</h2><label>Site</label><select id="rs"><option value="*">All sites</option>${S.sites.map((s,i)=>`<option value="${i}" ${String(rs)===String(i)?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
  <div class="two"><div><label>From</label><input type="date" id="rf" value="${rf}"></div><div><label>To</label><input type="date" id="rt" value="${rt}"></div></div>
  <div class="rb"><button class="pr" data-p="all">All time</button><button class="pr" data-p="month">This month</button><button class="pr" data-p="30">Last 30 days</button></div></div>
  <div class="cards" style="grid-template-columns:repeat(2,1fr)"><div class="c"><small>Total spent</small><b>${inr(T.e)}</b></div><div class="c"><small>Entries</small><b>${D.n}</b></div><div class="c"><small>Site advance given</small><b>${inr(T.a)}</b></div><div class="c"><small>Advance balance</small><b>${inr(T.b)}</b></div></div>`
- +D.tb.map(t=>`<details class="sec${t.hl?' pa-row':''}" ${t.o?'open':''}><summary><b>${esc(t.t)}</b>${t.rows.length?'':' <span class="mu">(no data)</span>'}</summary>${t.rows.length?tHtml(t):''}</details>`).join('')
+ +D.tb.map(t=>`<details class="sec" ${t.o?'open':''}><summary><b>${esc(t.t)}</b>${t.rows.length?'':' <span class="mu">(no data)</span>'}</summary>${t.rows.length?tHtml(t):''}</details>`).join('')
  +'<button class="p" id="rx" style="width:100%;margin-top:4px">⬇ Download this report (Excel)</button>';
  $('rs').onchange=e=>{rs=e.target.value;reports()};$('rf').onchange=e=>{rf=e.target.value;reports()};$('rt').onchange=e=>{rt=e.target.value;reports()};
  document.querySelectorAll('.pr').forEach(b=>b.onclick=()=>{const p=b.dataset.p,d=new Date().toISOString().slice(0,10);if(p==='all'){rf='';rt=''}else if(p==='month'){rf=d.slice(0,8)+'01';rt=''}else{rf=new Date(Date.now()-29*864e5).toISOString().slice(0,10);rt=''}reports()});
@@ -197,16 +185,16 @@ $('m7').onclick=()=>{const d=document.documentElement,dk=getComputedStyle(d).get
 async function dl(name,data){let d=null;try{d=await claude.use('downloads')}catch(e){}
  if(d){try{await d.save({filename:name,data})}catch(e){if(e&&e.code!=='declined')alert('Could not save: '+(e.message||e))}return}
  const b=data instanceof Blob?data:new Blob([data]);const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove()}
-function sheetRows(s){const AI=advInfo(s.rows);const o=[H];let b=0;[...s.rows].sort((x,y)=>(x.date||'').localeCompare(y.date||'')||x.id-y.id).forEach(r=>{
- if(r.adv){b+=r.adv;o.push([fd(r.date),r.cat||'Site Advance',(r.desc||'')+(AI[r.id].has?(r.desc?' · ':'')+'Prev. balance '+AI[r.id].carry+' carried, total '+AI[r.id].avail:''),r.nos,r.to,'',r.adv,b]);[...(r.br||[])].sort((p,q)=>(p.date||r.date||'').localeCompare(q.date||r.date||'')).forEach(l=>{b-=l.amt;o.push([fd(l.date||r.date),l.cat,'From site advance',l.nos||' ',l.to||r.to,l.amt,'',b])})}
+function sheetRows(s){const o=[H];let b=0;[...s.rows].sort((x,y)=>(x.date||'').localeCompare(y.date||'')||x.id-y.id).forEach(r=>{
+ if(r.adv){b+=r.adv;o.push([fd(r.date),r.cat||'Site Advance',r.desc,r.nos,r.to,'',r.adv,b]);(r.br||[]).forEach(l=>{b-=l.amt;o.push([fd(r.date),l.cat,'From site advance',' ',l.to||r.to,l.amt,'',b])})}
  else o.push([fd(r.date),r.cat,r.desc,r.nos,r.to,r.amt||'','',''])});
  const t=tot(s.rows);o.push(['','','','','Total',t.e,t.a,t.b]);return o}
 const xs=(y,m,d)=>Math.round((Date.UTC(y,m-1,d)-Date.UTC(1899,11,30))/864e5);
-function xlSheet(s){const AI=advInfo(s.rows);const o=[[s.name],H];let b=0,nn=0;const dr=[];
+function xlSheet(s){const o=[[s.name],H];let b=0,nn=0;const dr=[];
  const add=r=>{o.push(r);dr.push(o.length-1)};
  [...s.rows].sort((x,y)=>(x.date||'').localeCompare(y.date||'')||x.id-y.id).forEach(r=>{
   const p=(r.date||'').split('-').map(Number),dt=r.date?xs(p[0],p[1],p[2]):null;const q=parseFloat(r.nos);if(q)nn+=q;
-  if(r.adv){b+=r.adv;add([dt,r.cat||'Site Advance',((r.desc||'')+(AI[r.id].has?(r.desc?' · ':'')+'Prev. balance '+AI[r.id].carry+' carried, total '+AI[r.id].avail:''))||null,r.nos?(+r.nos||r.nos):null,r.to||null,null,r.adv,b]);[...(r.br||[])].sort((p,q)=>(p.date||r.date||'').localeCompare(q.date||r.date||'')).forEach(l=>{b-=l.amt;nn+=parseFloat(l.nos)||0;const d=l.date||r.date,parts=(d||'').split('-').map(Number),ldate=d?xs(parts[0],parts[1],parts[2]):null;add([ldate,l.cat||null,'From site advance',l.nos?(+l.nos||l.nos):null,l.to||r.to||null,l.amt,null,b])})}
+  if(r.adv){b+=r.adv;add([dt,r.cat||'Site Advance',r.desc||null,r.nos?(+r.nos||r.nos):null,r.to||null,null,r.adv,b]);(r.br||[]).forEach(l=>{b-=l.amt;add([dt,l.cat||null,'From site advance',null,l.to||r.to||null,l.amt,null,b])})}
   else add([dt,r.cat||null,r.desc||null,r.nos?(+r.nos||r.nos):null,r.to||null,r.amt||null,null,null])});
  const t=tot(s.rows);o.push([]);o.push(['Total',null,null,nn||null,null,t.e,t.a,t.b]);
  const ws=XLSX.utils.aoa_to_sheet(o);
