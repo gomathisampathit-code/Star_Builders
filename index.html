@@ -79,7 +79,7 @@ const EMBED={cur:0,sites:[{"name":"CMS","rows":[{"id":1,"date":"2026-09-18","cat
 /* ====== SHARED DATABASE ======
    Paste the Google Apps Script Web app URL between the quotes (see setup guide).
    While it is empty the app works only on this device, as before. */
-const API='PASTE_WEB_APP_URL_HERE';
+const API='https://script.google.com/macros/s/AKfycbwvZ4KTm6JxHvyq2gmA_lGz06t0BgIVWu6Kcd_oLXK10Awh-SYXSyXa5FUVxsNV3RYH/exec';
 const ONLINE=/^https:\/\/script\.google\.com\//.test(API);
 const KEY=ONLINE?'sb_cache':'sitebook3';
 let _l=0;const newId=()=>{let v=Date.now()*10+Math.floor(Math.random()*10);if(v<=_l)v=_l+1;return _l=v};
