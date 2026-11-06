@@ -18,4 +18,4 @@ st.markdown(
 
 # index.html must be in the SAME folder as this app.py
 html = Path(__file__).with_name("index.html").read_text(encoding="utf-8")
-components.html(html, height=1400, scrolling=False)
+components.html(html, height=1400, scrolling=True)
