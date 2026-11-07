@@ -74,13 +74,11 @@ function apply_(db, op, role, errs) {
     return db.rows.length !== n;
   }
   if (t === 'addSite') {
-    if (!need()) return false;
     const n = str_(op.name);
     if (!n || findSite_(db, n)) return false;
     db.sites.push(n); return true;
   }
   if (t === 'renSite') {
-    if (!need()) return false;
     const from = findSite_(db, str_(op.from)), to = str_(op.to);
     if (!from || !to) return false;
     const clash = findSite_(db, to);
@@ -99,7 +97,7 @@ function apply_(db, op, role, errs) {
     return true;
   }
   if (t === 'bulk' || t === 'seed') {
-    if (!need()) return false;
+    if (t === 'seed' && !need()) return false;   // Excel import ('bulk') is open to normal users; the one-time seed is admin-only
     if (t === 'seed' && (db.rows.length || db.sites.length)) { errs.push('The shared database already has data, so nothing was uploaded.'); return false; }
     let any = false;
     (op.sites || []).forEach(function (s) {
@@ -124,7 +122,7 @@ function putRow_(db, site, r, errs) {
     nos: str_(r.nos), to: str_(r.to),
     amt: Number(r.amt) || 0, adv: Number(r.adv) || 0,
     br: (Array.isArray(r.br) ? r.br : []).map(function (l) {
-      return { cat: str_(l.cat), desc: str_(l.desc), to: str_(l.to), amt: Number(l.amt) || 0 };
+      return { nos: str_(l.nos), date: str_(l.date).slice(0, 10), cat: str_(l.cat), desc: str_(l.desc), to: str_(l.to), amt: Number(l.amt) || 0 };
     }),
     ts: Date.now()
   };
