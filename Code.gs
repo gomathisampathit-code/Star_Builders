@@ -14,6 +14,8 @@ const TZ = 'Asia/Kolkata';
 
 const E_HEAD = ['id', 'site', 'date', 'paid_for', 'description', 'nos', 'paid_to', 'amount', 'advance', 'breakup_json', 'updated'];
 const S_HEAD = ['site'];
+const A_HEAD = ['id', 'site', 'date', 'labour', 'number', 'contractor', 'note', 'updated'];   // attendance
+const R_HEAD = ['labour', 'daily_wage'];                                                      // wages
 
 function doGet() {
   return out_({ ok: true, msg: 'Star Builders API is running' });
@@ -73,6 +75,29 @@ function apply_(db, op, role, errs) {
     db.rows = db.rows.filter(function (r) { return r.id !== Number(op.id); });
     return db.rows.length !== n;
   }
+  if (t === 'attPut') {                                  // attendance entry (any user)
+    const site = str_(op.site);
+    if (!site || !op.row) return false;
+    let name = findSite_(db, site);
+    if (!name) {
+      if (!adm) { errs.push('Site not found: ' + site); return false; }
+      db.sites.push(site); name = site;
+    }
+    return putAtt_(db, name, op.row, errs);
+  }
+  if (t === 'attDel') {
+    if (!need()) return false;
+    const n = db.att.length;
+    db.att = db.att.filter(function (a) { return a.id !== Number(op.id); });
+    return db.att.length !== n;
+  }
+  if (t === 'rate') {                                    // daily wage of a labour type (admin)
+    if (!need()) return false;
+    const k = str_(op.lab), v = Number(op.amt);
+    if (!k) return false;
+    if (v > 0) db.rates[k] = v; else delete db.rates[k];
+    return true;
+  }
   if (t === 'addSite') {
     const n = str_(op.name);
     if (!n || findSite_(db, n)) return false;
@@ -85,6 +110,7 @@ function apply_(db, op, role, errs) {
     if (clash && clash.toLowerCase() !== from.toLowerCase()) { errs.push('A site named "' + to + '" already exists'); return false; }
     db.sites[db.sites.indexOf(from)] = to;
     db.rows.forEach(function (r) { if (r.site === from) r.site = to; });
+    db.att.forEach(function (a) { if (a.site === from) a.site = to; });
     return true;
   }
   if (t === 'delSite') {
@@ -94,11 +120,12 @@ function apply_(db, op, role, errs) {
     if (db.sites.length < 2) { errs.push('At least one site must remain'); return false; }
     db.sites.splice(db.sites.indexOf(n), 1);
     db.rows = db.rows.filter(function (r) { return r.site !== n; });
+    db.att = db.att.filter(function (a) { return a.site !== n; });
     return true;
   }
   if (t === 'bulk' || t === 'seed') {
     if (t === 'seed' && !need()) return false;   // Excel import ('bulk') is open to normal users; the one-time seed is admin-only
-    if (t === 'seed' && (db.rows.length || db.sites.length)) { errs.push('The shared database already has data, so nothing was uploaded.'); return false; }
+    if (t === 'seed' && (db.rows.length || db.sites.length || db.att.length)) { errs.push('The shared database already has data, so nothing was uploaded.'); return false; }
     let any = false;
     (op.sites || []).forEach(function (s) {
       const n = str_(s.name);
@@ -106,11 +133,23 @@ function apply_(db, op, role, errs) {
       let name = findSite_(db, n);
       if (!name) { db.sites.push(n); name = n; any = true; }
       (s.rows || []).forEach(function (r) { if (putRow_(db, name, r, errs)) any = true; });
+      (s.att || []).forEach(function (a) { if (putAtt_(db, name, a, errs)) any = true; });
     });
     return any;
   }
   errs.push('Unknown operation: ' + t);
   return false;
+}
+
+function putAtt_(db, site, r, errs) {
+  const id = Number(r.id), n = Number(r.n);
+  if (!isFinite(id) || id <= 0) { errs.push('Attendance entry without a valid id was skipped'); return false; }
+  if (!isFinite(n) || n <= 0) { errs.push('Attendance entry without a number was skipped'); return false; }
+  const row = { id: id, site: site, date: str_(r.date).slice(0, 10), lab: str_(r.lab), n: Math.round(n * 100) / 100, by: str_(r.by), note: str_(r.note), ts: Date.now() };
+  if (!row.date || !row.lab) { errs.push('Attendance entry without date or labour type was skipped'); return false; }
+  const i = db.att.findIndex(function (x) { return x.id === id; });
+  if (i >= 0) db.att[i] = row; else db.att.push(row);
+  return true;
 }
 
 function putRow_(db, site, r, errs) {
@@ -160,7 +199,20 @@ function load_() {
       br: Array.isArray(br) ? br : [], ts: Number(a[10]) || 0
     });
   });
-  return { sites: sites, rows: rows };
+  const att = [];
+  sheet_('Attendance', A_HEAD).getDataRange().getValues().slice(1).forEach(function (a) {
+    const id = Number(a[0]);
+    if (!isFinite(id) || id <= 0) return;
+    const site = str_(a[1]);
+    if (site && sites.indexOf(site) < 0) sites.push(site);
+    att.push({ id: id, site: site, date: str_(a[2]).slice(0, 10), lab: str_(a[3]), n: Number(a[4]) || 0, by: str_(a[5]), note: str_(a[6]), ts: Number(a[7]) || 0 });
+  });
+  const rates = {};
+  sheet_('Rates', R_HEAD).getDataRange().getValues().slice(1).forEach(function (r) {
+    const k = str_(r[0]), v = Number(r[1]);
+    if (k && v > 0) rates[k] = v;
+  });
+  return { sites: sites, rows: rows, att: att, rates: rates };
 }
 
 function store_(db) {
@@ -181,6 +233,23 @@ function store_(db) {
       return [r.id, r.site, r.date, r.cat, r.desc, r.nos, r.to, r.amt, r.adv, JSON.stringify(r.br || []), r.ts];
     }));
   }
+  // attendance
+  const as = sheet_('Attendance', A_HEAD), na = db.att.length;
+  if (as.getMaxRows() < na + 1) as.insertRowsAfter(as.getMaxRows(), na + 1 - as.getMaxRows());
+  as.getRange(2, 1, Math.max(as.getMaxRows() - 1, 1), A_HEAD.length).clearContent();
+  if (na) {
+    as.getRange(2, 2, na, 3).setNumberFormat('@');
+    as.getRange(2, 6, na, 2).setNumberFormat('@');
+    as.getRange(2, 1, na, A_HEAD.length).setValues(db.att.map(function (a) { return [a.id, a.site, a.date, a.lab, a.n, a.by, a.note, a.ts]; }));
+  }
+  // wages
+  const rs = sheet_('Rates', R_HEAD), keys = Object.keys(db.rates);
+  if (rs.getMaxRows() < keys.length + 1) rs.insertRowsAfter(rs.getMaxRows(), keys.length + 1 - rs.getMaxRows());
+  rs.getRange(2, 1, Math.max(rs.getMaxRows() - 1, 1), 2).clearContent();
+  if (keys.length) {
+    rs.getRange(2, 1, keys.length, 1).setNumberFormat('@');
+    rs.getRange(2, 1, keys.length, 2).setValues(keys.map(function (k) { return [k, db.rates[k]]; }));
+  }
 }
 
 function dump_(db) {
@@ -190,9 +259,13 @@ function dump_(db) {
         name: name,
         rows: db.rows.filter(function (r) { return r.site === name; }).map(function (r) {
           return { id: r.id, date: r.date, cat: r.cat, desc: r.desc, nos: r.nos, to: r.to, amt: r.amt, adv: r.adv, br: r.br };
+        }),
+        att: db.att.filter(function (a) { return a.site === name; }).map(function (a) {
+          return { id: a.id, date: a.date, lab: a.lab, n: a.n, by: a.by, note: a.note };
         })
       };
-    })
+    }),
+    rates: db.rates
   };
 }
 
