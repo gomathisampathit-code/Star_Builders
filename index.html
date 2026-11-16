@@ -76,11 +76,14 @@ details.sec>summary{cursor:pointer;font-size:15px;margin-bottom:8px}.pr{padding:
 <input type="file" id="fi" accept=".xlsx,.xls,.csv" hidden></dialog>
 
 <dialog id="atdlg"><b id="at_dt">Add attendance</b><div class="mu" id="at_site" style="margin-top:4px"></div>
-<div class="two"><div><label>Date</label><input type="date" id="at_d"></div><div><label>Number of labours</label><input type="number" inputmode="decimal" step="0.5" min="0" id="at_n" placeholder="0"></div></div>
-<label>Labour type (tap one or type)</label><div id="at_chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div><input id="at_l" list="at_ll" autocomplete="off" placeholder="Mason, Helper, Carpenter…"><datalist id="at_ll"></datalist>
+<label>Date</label><input type="date" id="at_d">
+<div id="at_multi"><label>Labour lines</label><div class="mu" style="margin-bottom:6px">Tap a labour type to add it, then enter how many.</div><div id="at_chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div></div>
+<div id="at_lines"></div>
+<button type="button" id="at_addl" style="width:100%;margin-top:2px">＋ Add line</button>
+<div id="at_tot" style="margin-top:10px;font-weight:600"></div><datalist id="at_ll"></datalist>
 <label>Contractor / team (optional)</label><input id="at_by" list="at_bl" autocomplete="off"><datalist id="at_bl"></datalist>
 <label>Note (optional)</label><input id="at_x">
-<div class="mu" style="margin-top:8px">Tip: enter <b>0.5</b> for a half day. Add one line for each labour type.</div>
+<div class="mu" style="margin-top:8px" id="at_tip">Tip: enter <b>0.5</b> for a half day. The date, contractor and note apply to every line.</div>
 <div class="acts"><button id="at_del" style="color:var(--rd)" hidden>Delete</button><button id="at_cancel">Cancel</button></div>
 <div class="acts"><button id="at_next">Save &amp; add another</button><button class="p" id="at_save">Save</button></div></dialog>
 <div id="toast"></div>
@@ -255,26 +258,43 @@ function attView(){
  $('alist').innerHTML=Object.keys(days).length?Object.keys(days).sort().reverse().map(d=>{const g=days[d].sort((x,y)=>x.lab.localeCompare(y.lab));
   return '<div class="sec" style="padding:10px"><div class="dayh"><span>'+DAYN[new Date(d+'T00:00:00').getDay()]+' '+fd(d)+'</span><span>Total '+rnd(g.reduce((s,a)=>s+a.n,0))+'</span></div>'+g.map(a=>'<div class="row" data-id="'+a.id+'" style="margin:6px 0 0;padding:8px 10px"><div class="l"><div class="t">'+esc(a.lab)+'</div><div class="s">'+(a.by?esc(a.by):'')+(a.by&&a.note?' · ':'')+esc(a.note||'')+'</div></div><div class="r"><b>'+a.n+'</b></div></div>').join('')+'</div>'}).join(''):'<div class="mu" style="text-align:center;padding:24px 8px">'+(A.length?'Nothing matches your search.':'No attendance entered for <b>'+esc(cur().name)+'</b> yet.<br>Tap <b>＋ Add attendance</b> to enter today\'s labours.')+'</div>'}
 let aEdit=null,aKeep='';
-function attChips(){const f={};(cur().att||[]).forEach(a=>f[a.lab]=(f[a.lab]||0)+1);const top=Object.keys(f).sort((a,b)=>f[b]-f[a]);const ch=[...new Set([...top,...LABS])].slice(0,8),v=nLab($('at_l').value);
- $('at_chips').innerHTML=ch.map(l=>'<button type="button" class="chip'+(l===v?' on':'')+'" data-l="'+esc(l)+'">'+esc(l)+'</button>').join('')}
+const atLine=(l,n)=>'<div class="atl" style="display:flex;gap:8px;margin-bottom:8px;align-items:center"><input class="al" list="at_ll" autocomplete="off" placeholder="Labour type" value="'+esc(l||'')+'" style="flex:1;min-width:0"><input class="an" type="number" inputmode="decimal" step="0.5" min="0" placeholder="0" value="'+(n===''||n==null?'':n)+'" style="width:84px"><button type="button" class="ax" title="Remove this line" style="padding:8px 12px">✕</button></div>';
+const atRead=()=>[...document.querySelectorAll('#at_lines .atl')].map(r=>({l:r.querySelector('.al').value,n:r.querySelector('.an').value}));
+function atAdd(l,n,focus){const w=document.createElement('div');w.innerHTML=atLine(l,n);const row=w.firstChild;$('at_lines').appendChild(row);atInfo();if(focus)row.querySelector(l?'.an':'.al').focus()}
+function atInfo(){const L=atRead(),v=new Set(L.map(x=>nLab(x.l)).filter(Boolean)),tot=L.reduce((s,x)=>s+(+x.n>0?+x.n:0),0),cnt=L.filter(x=>x.l.trim()&&+x.n>0).length;
+ document.querySelectorAll('#at_chips .chip').forEach(c=>c.classList.toggle('on',v.has(c.dataset.l)));
+ $('at_tot').textContent=aEdit?'':(cnt?'Total: '+rnd(tot)+' labours in '+cnt+' line'+(cnt>1?'s':''):'')}
+function attChips(){const f={};(cur().att||[]).forEach(a=>f[a.lab]=(f[a.lab]||0)+1);const top=Object.keys(f).sort((a,b)=>f[b]-f[a]);const ch=[...new Set([...top,...LABS])].slice(0,8);
+ $('at_chips').innerHTML=ch.map(l=>'<button type="button" class="chip" data-l="'+esc(l)+'">'+esc(l)+'</button>').join('');atInfo()}
 function attOpen(id){aEdit=id;const a=id?(cur().att||[]).find(x=>x.id==id):null;
  $('at_dt').textContent=a?'Edit attendance':'Add attendance';$('at_site').textContent='Site: '+cur().name;
- $('at_d').value=a?a.date:(aKeep||today());$('at_n').value=a?a.n:'';$('at_l').value=a?a.lab:'';$('at_by').value=a?a.by||'':'';$('at_x').value=a?a.note||'':'';
- $('at_del').hidden=!a||!ADMIN;$('at_next').hidden=!!a;
+ $('at_d').value=a?a.date:(aKeep||today());$('at_by').value=a?a.by||'':(aKeepBy||'');$('at_x').value=a?a.note||'':'';
+ $('at_del').hidden=!a||!ADMIN;$('at_next').hidden=!!a;$('at_multi').hidden=!!a;$('at_addl').hidden=!!a;$('at_tip').hidden=!!a;
  $('at_ll').innerHTML=[...new Set([...usedLabs(),...LABS])].sort().map(x=>'<option value="'+esc(x)+'">').join('');
  $('at_bl').innerHTML=[...new Set(S.sites.flatMap(s=>(s.att||[]).map(x=>x.by)).filter(Boolean))].sort().map(x=>'<option value="'+esc(x)+'">').join('');
+ $('at_lines').innerHTML='';if(a)atAdd(a.lab,a.n,false);else atAdd('','',false);
  attChips();$('atdlg').showModal()}
-function attSave(next){const d=$('at_d').value,n=+$('at_n').value,l=nLab($('at_l').value);
- if(!d||!l||!(n>0)){alert('Please enter the date, the labour type and the number of labours.');return}
- const by=$('at_by').value.trim(),note=$('at_x').value.trim();
- const dup=(cur().att||[]).find(a=>a.id!=aEdit&&a.date===d&&a.lab===l&&(a.by||'').toLowerCase()===by.toLowerCase());
- if(dup&&!confirm('There is already an entry for '+l+' on '+fd(d)+' ('+dup.n+' labours).\nAdd this as another entry?\n\n(To change the old one, press Cancel and tap it in the list.)'))return;
- mutate({t:'attPut',site:cur().name,row:{id:aEdit||newId(),date:d,lab:l,n:rnd(n),by,note}});aKeep=d;
- if(next){$('at_n').value='';$('at_l').value='';$('at_x').value='';attChips();toast('Saved ✓ – add the next labour type');$('at_l').focus()}
- else{$('atdlg').close();toast(ONLINE?'Saving…':'Saved on this device')}}
+let aKeepBy='';
+function attSave(next){const d=$('at_d').value;if(!d){alert('Please choose the date.');return}
+ const raw=atRead().filter(x=>x.l.trim()||String(x.n).trim()!=='');if(!raw.length){alert('Add at least one labour line: the labour type and how many.');return}
+ const L=[];for(let k=0;k<raw.length;k++){const l=nLab(raw[k].l),n=+raw[k].n;if(!l||!(n>0)){alert('Line '+(k+1)+' needs both a labour type and a number above 0.');return}L.push([l,n])}
+ const m=new Map();L.forEach(([l,n])=>m.set(l,(m.get(l)||0)+n));
+ if(!aEdit&&m.size<L.length&&!confirm('Some labour types appear on more than one line ('+[...m.keys()].filter(k=>L.filter(x=>x[0]===k).length>1).join(', ')+').\nCombine each into a single line?'))return;
+ const rows=aEdit?[[L[0][0],L[0][1]]]:[...m.entries()],by=$('at_by').value.trim(),note=$('at_x').value.trim();
+ if(!aEdit){const dups=rows.filter(([l])=>(cur().att||[]).some(a=>a.date===d&&a.lab===l&&(a.by||'').toLowerCase()===by.toLowerCase())).map(x=>x[0]);
+  if(dups.length&&!confirm('There is already an entry on '+fd(d)+' for: '+dups.join(', ')+'.\nAdd these as separate entries anyway?\n\n(To change an old one, press Cancel and tap it in the list.)'))return}
+ rows.forEach(([l,n])=>mutate({t:'attPut',site:cur().name,row:{id:aEdit||newId(),date:d,lab:l,n:rnd(n),by,note}}));aKeep=d;aKeepBy=by;
+ const tot=rnd(rows.reduce((s,x)=>s+x[1],0)),msg=aEdit?'':rows.length+' line'+(rows.length>1?'s':'')+' · '+tot+' labours';
+ if(next){$('at_lines').innerHTML='';atAdd('','',false);$('at_x').value='';atInfo();toast('Saved ✓ '+msg+' – add the next group');$('at_lines').querySelector('.al').focus()}
+ else{$('atdlg').close();toast((ONLINE?'Saving… ':'Saved ✓ ')+msg)}}
 $('aadd').onclick=()=>attOpen(null);$('aq').oninput=attView;$('alist').onclick=e=>{const r=e.target.closest('.row');if(r)attOpen(+r.dataset.id)};
-$('at_chips').onclick=e=>{const b=e.target.closest('.chip');if(b){$('at_l').value=b.dataset.l;attChips();$('at_n').focus()}};
-$('at_l').oninput=attChips;$('at_cancel').onclick=()=>$('atdlg').close();$('at_save').onclick=()=>attSave(false);$('at_next').onclick=()=>attSave(true);
+$('at_chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;const rows=[...document.querySelectorAll('#at_lines .atl')],empty=rows.find(r=>!r.querySelector('.al').value.trim());
+ if(rows.some(r=>nLab(r.querySelector('.al').value)===b.dataset.l)){const r=rows.find(r=>nLab(r.querySelector('.al').value)===b.dataset.l);r.querySelector('.an').focus();return}
+ if(empty){empty.querySelector('.al').value=b.dataset.l;atInfo();empty.querySelector('.an').focus()}else atAdd(b.dataset.l,'',true)};
+$('at_addl').onclick=()=>atAdd('','',true);
+$('at_lines').addEventListener('input',atInfo);
+$('at_lines').onclick=e=>{const x=e.target.closest('.ax');if(!x)return;const rows=document.querySelectorAll('#at_lines .atl');if(rows.length>1)x.closest('.atl').remove();else{x.closest('.atl').querySelector('.al').value='';x.closest('.atl').querySelector('.an').value=''}atInfo()};
+$('at_cancel').onclick=()=>$('atdlg').close();$('at_save').onclick=()=>attSave(false);$('at_next').onclick=()=>attSave(true);
 $('at_del').onclick=()=>{if(confirm('Delete this attendance entry?')){$('atdlg').close();mutate({t:'attDel',id:aEdit})}};
 /* ---- Attendance reports (admin, inside Reports tab) ---- */
 const modeBar=()=>'<div class="seg" style="margin-bottom:10px"><button data-m="exp" class="'+(rmode==='exp'?'on':'')+'">📊 Expense reports</button><button data-m="att" class="'+(rmode==='att'?'on':'')+'">👷 Attendance reports</button></div>';
