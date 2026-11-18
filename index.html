@@ -19,7 +19,7 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
 .c{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px}
 .c small{color:var(--mu);display:block;font-size:12px}.c b{font-size:16px}
-.tabs{display:flex;gap:6px;margin-bottom:10px}.tabs button{flex:1}.tabs .on{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+.tabs{display:flex;gap:6px;margin-bottom:10px}.tabs button{flex:1;min-width:0;padding:10px 4px;font-size:15px}.tabs .on{background:var(--ac);color:var(--acx);border-color:var(--ac)}
 .row{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;gap:10px}
 .row .l{min-width:0}.row .t{font-weight:600}.row .s{color:var(--mu);font-size:13px;overflow-wrap:anywhere}
 .row .r{text-align:right;white-space:nowrap}.out{color:var(--rd)}.in{color:var(--ac)}
@@ -44,17 +44,22 @@ details.sec>summary{cursor:pointer;font-size:15px;margin-bottom:8px}.pr{padding:
 .gi{margin-top:8px;font-size:14px}
 .chip{padding:6px 12px;border-radius:16px;font-size:14px}.chip.on{background:var(--ac);color:var(--acx);border-color:var(--ac)}
 .dayh{display:flex;justify-content:space-between;font-weight:600;margin-bottom:2px}
+.sc{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.sc .s{color:var(--mu);font-size:13px}.sc summary{list-style:none}.sc summary::-webkit-details-marker{display:none}.sc[open]{border-color:var(--ac)}
+.stb{font-size:12px;padding:2px 9px;border-radius:10px;white-space:nowrap;border:1px solid var(--bd)}
+.pgb{height:8px;border-radius:4px;background:var(--bd);overflow:hidden;margin:6px 0}.pgb i{display:block;height:100%;background:var(--ac)}
+#schbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:none;gap:8px;align-items:center;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--bd);box-shadow:0 -4px 14px rgba(0,0,0,.12)}
 </style></head><body>
 <div id="lock"><div class="sec" style="width:min(92vw,360px)"><h1 style="text-align:center">Star Builders</h1><label>Enter app password</label><input type="password" id="lp" autocomplete="off"><div id="le" class="out" style="min-height:20px;margin:6px 0"></div><button class="p" id="lb" style="width:100%">Open</button></div></div>
 <dialog id="adl"><b>Reports – admin password</b><label>Admin password</label><input type="password" id="ap" autocomplete="off"><div id="ae" class="out" style="min-height:20px;margin:6px 0"></div><div class="acts"><button id="ac">Cancel</button><button class="p" id="ab">Open reports</button></div></dialog>
 <div class="wrap">
 <div class="top"><div style="flex:1"><h1>Star Builders</h1><div class="mu"><span id="role"></span> <span id="sync" title="Tap to refresh"></span></div></div><button id="mn" aria-label="Menu">⋯ Menu</button></div>
 <div class="top"><select id="site" style="flex:1"></select><button id="qa" class="p">＋ Add site</button></div>
-<div class="cards" id="cds"><div class="c"><small>Site advance given</small><b id="sa"></b></div><div class="c"><small>Total spent</small><b id="se"></b></div><div class="c"><small>Advance balance</small><b id="sb"></b></div></div>
-<div class="tabs"><button id="t1" class="on">Entries</button><button id="t2">Reports</button><button id="t3">Attendance</button></div>
-<div id="v1"><input id="q" placeholder="Search by item, person, description…" style="margin-bottom:10px"><div id="list"></div></div>
+<div class="tabs"><button id="t4">Schedule</button><button id="t3">Attendance</button><button id="t1" class="on">Entries</button><button id="t2">Reports</button></div>
+<div id="v1"><div class="cards" id="cds"><div class="c"><small>Site advance given</small><b id="sa"></b></div><div class="c"><small>Total spent</small><b id="se"></b></div><div class="c"><small>Advance balance</small><b id="sb"></b></div></div><input id="q" placeholder="Search by item, person, description…" style="margin-bottom:10px"><div id="list"></div></div>
 <div id="v2" hidden></div>
 <div id="v3" hidden><div class="cards" id="acd"></div><button class="p" id="aadd" style="width:100%;margin-bottom:10px">＋ Add attendance</button><input id="aq" placeholder="Search labour, contractor, note…" style="margin-bottom:10px"><div id="alist"></div></div>
+<div id="v4" hidden></div>
 </div>
 <button class="p fab" id="add">+ Add entry</button>
 
@@ -86,6 +91,13 @@ details.sec>summary{cursor:pointer;font-size:15px;margin-bottom:8px}.pr{padding:
 <div class="mu" style="margin-top:8px" id="at_tip">Tip: enter <b>0.5</b> for a half day. The date, contractor and note apply to every line.</div>
 <div class="acts"><button id="at_del" style="color:var(--rd)" hidden>Delete</button><button id="at_cancel">Cancel</button></div>
 <div class="acts"><button id="at_next">Save &amp; add another</button><button class="p" id="at_save">Save</button></div></dialog>
+<div id="schbar"><div id="sb_msg" style="flex:1;font-weight:600"></div><button id="sb_dis">Discard</button><button class="p" id="sb_sv">💾 Save</button></div>
+<input type="file" id="sch_fi" accept=".csv,.xlsx,.xls" hidden>
+<dialog id="spdlg"><b id="sp_t">Edit activity</b><div class="mu" id="sp_fl" style="margin-top:4px"></div>
+<label>Activity name *</label><input id="sp_nm">
+<div class="two"><div><label>Planned start</label><input type="date" id="sp_ps"></div><div><label>Planned end</label><input type="date" id="sp_pe"></div></div>
+<label style="display:flex;gap:8px;align-items:center;color:var(--tx)"><input type="checkbox" id="sp_cc" style="width:auto">This is concrete work (shown in green)</label>
+<div class="acts"><button id="sp_cancel">Cancel</button><button class="p" id="sp_save">Save</button></div></dialog>
 <div id="toast"></div>
 <script>
 const $=id=>document.getElementById(id);
@@ -103,7 +115,7 @@ const okS=x=>!!(x&&x.sites&&x.sites.length);
 let S=ld(KEY);
 if(!okS(S))S=ONLINE?{cur:0,sites:[{name:'Loading…',rows:[]}]}:EMBED;
 S.sites.forEach(s=>s.rows.forEach(r=>{r.cat=normCat(r.cat);(r.br||[]).forEach(l=>{l.cat=normCat(l.cat)})}));
-S.sites.forEach(s=>{s.att=s.att||[]});S.rates=S.rates||{};var TAB=1;
+S.sites.forEach(s=>{s.att=s.att||[]});S.rates=S.rates||{};S.sch=S.sch||{floors:[],rows:[]};var TAB=1;
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const inr=n=>'₹ '+(+n||0).toLocaleString('en-IN');
 const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -132,7 +144,7 @@ function render(){
  const u=k=>[...new Set(S.sites.flatMap(s=>s.rows.map(r=>r[k])).filter(Boolean))].sort();
  $('cl').innerHTML=u('cat').map(x=>`<option value="${esc(x)}">`).join('');$('pl').innerHTML=u('to').map(x=>`<option value="${esc(x)}">`).join('');
  if(!$('v2').hidden)reports();
- if(!$('v3').hidden)attView();
+ if(!$('v3').hidden)attView();if(TAB===4)schView();
 }
 let edit=null,ty=0,BR=[],ADMIN=false;
 function formAdv(){const id=edit||1e12,rows=cur().rows.filter(r=>r.id!==edit);rows.push({id,date:$('fd').value,to:$('fp').value,adv:+$('fa').value||1e-9,br:BR.map(l=>({amt:+l.amt||0}))});return advInfo(rows)[id]}
@@ -154,8 +166,8 @@ $('fsv').onclick=()=>{const a=+$('fa').value;if(!a||!$('fd').value){alert('Pleas
  $('dlg').close();mutate({t:'put',site:cur().name,row});toast(ONLINE?'Saving…':'Saved on this device')};
 $('fdel').onclick=()=>{if(confirm('Delete this entry?')){$('dlg').close();mutate({t:'del',id:edit})}};
 $('site').onchange=e=>{S.cur=+e.target.value;save();render()};$('q').oninput=render;
-function tab(n){if(n==2&&!ADMIN){askAdmin();return}TAB=n;$('v1').hidden=n!=1;$('v2').hidden=n!=2;$('v3').hidden=n!=3;['t1','t2','t3'].forEach((k,i)=>{$(k).className=n==i+1?'on':''});$('cds').style.display=n==3?'none':'';$('add').hidden=n==2;$('add').textContent=n==3?'+ Add attendance':'+ Add entry';if(n==2)reports();if(n==3)attView()}
-$('t1').onclick=()=>tab(1);$('t2').onclick=()=>tab(2);$('t3').onclick=()=>tab(3);
+function tab(n){if(n==2&&!ADMIN){askAdmin();return}TAB=n;$('v1').hidden=n!=1;$('v2').hidden=n!=2;$('v3').hidden=n!=3;$('v4').hidden=n!=4;['t1','t2','t3','t4'].forEach((k,i)=>{$(k).className=n==i+1?'on':''});$('add').hidden=(n==2||n==4);$('add').textContent=n==3?'+ Add attendance':'+ Add entry';if(n==2)reports();if(n==3)attView();if(n==4)schView();schBar()}
+$('t1').onclick=()=>tab(1);$('t2').onclick=()=>tab(2);$('t3').onclick=()=>tab(3);$('t4').onclick=()=>tab(4);
 let rf='',rt='',rs='*',rmode='exp';
 function group(rows,f){const m={};flat(rows).forEach(r=>{if(r.amt){const k=f(r)||'(not specified)';const x=m[k]||(m[k]=[0,0]);x[0]+=r.amt;x[1]+=parseFloat(r.nos)||0}});return Object.entries(m).map(([k,x])=>[k,x[0],x[1]]).sort((a,b)=>b[1]-a[1])}
 function scopeRows(){if(rs!=='*'&&!S.sites[rs])rs='*';const L=rs==='*'?S.sites:[S.sites[rs]];return L.flatMap(s=>s.rows.filter(r=>(!rf||r.date>=rf)&&(!rt||r.date<=rt)).map(r=>({...r,site:s.name})))}
@@ -345,6 +357,191 @@ function rxa(){const D=attData(),wb=XLSX.utils.book_new();
   aoa.forEach((r,ri)=>{if(ri)r.forEach((v,ci)=>{const c=ws[XLSX.utils.encode_cell({r:ri,c:ci})],k=t.f[ci];if(c&&c.t==='n')c.z=k==='d'?'dd-mmm-yy':k==='m'?'#,##0':k==='p'?'0.0':'0.##'})});
   XLSX.utils.book_append_sheet(wb,ws,t.t.replace(/[\\\/?*\[\]:]/g,'').slice(0,31))});
  return dl('Star_Builders_Attendance_Report.xlsx',new Uint8Array(XLSX.write(wb,{type:'array',bookType:'xlsx'})))}
+/* ===================== CONSTRUCTION SCHEDULE (Schedule tab) ===================== */
+const PROJ='CMS School – Barchant';
+const SCH_ST=['Not started','In progress','Completed','On hold'],DEF_FLOORS=['Ground Floor','First Floor','Second Floor'];
+const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],MNF=['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+const dN=x=>x?Date.UTC(+x.slice(0,4),+x.slice(5,7)-1,+x.slice(8,10)):null;
+const dDiff=(a,b)=>Math.round((dN(a)-dN(b))/864e5);
+function addD(x,n){return new Date(dN(x)+n*864e5).toISOString().slice(0,10)}
+const fdw=x=>x?DAYN[new Date(dN(x)).getUTCDay()]+' '+fd(x):'';
+const fs3=x=>x.slice(8)+' '+MN[+x.slice(5,7)-1],fl3=x=>fs3(x)+' '+x.slice(0,4);
+const DEF_SCH=[["Earth Work", "2026-10-12", "2026-10-13", 0, "2026-10-12", "2026-10-13", "Completed", ""], ["PCC 1:4:8", "2026-10-14", "2026-10-16", 0, "2026-10-14", "2026-10-16", "Completed", ""], ["Bar Bending", "2026-10-15", "2026-10-16", 0, "2026-10-15", "", "In progress", ""], ["RCC Footing Concrete", "2026-10-17", "2026-10-18", 1, "", "", "Not started", ""], ["Pedestal Centering", "2026-10-19", "2026-10-20", 0, "", "", "Not started", ""], ["Pedestal RCC", "2026-10-20", "2026-10-21", 1, "", "", "Not started", ""], ["Plinth Beam Earthwork", "2026-10-22", "2026-10-23", 0, "", "", "Not started", ""], ["Plinth Beam PCC", "2026-10-23", "2026-10-24", 0, "", "", "Not started", ""], ["Plinth Beam Bar Bending", "2026-10-23", "2026-10-24", 0, "", "", "Not started", ""], ["Centering", "2026-10-24", "2026-10-26", 0, "", "", "Not started", ""], ["Concrete (Plinth Beam)", "2026-10-26", "2026-10-27", 1, "", "", "Not started", ""], ["Earth Filling & Levelling", "2026-10-28", "2026-10-31", 0, "", "", "Not started", ""], ["Super Structure Column", "2026-11-02", "2026-11-04", 0, "", "", "Not started", ""], ["RCC Concrete", "2026-11-03", "2026-11-05", 1, "", "", "Not started", ""], ["Brickwork – Sill Level", "2026-11-05", "2026-11-12", 0, "", "", "Not started", ""], ["Lintel Level", "2026-11-11", "2026-11-15", 0, "", "", "Not started", ""], ["Lintel Centering", "2026-11-15", "2026-11-17", 0, "", "", "Not started", ""], ["Bar Bending (Lintel)", "2026-11-16", "2026-11-18", 0, "", "", "Not started", ""], ["Lintel RCC", "2026-11-19", "2026-11-19", 1, "", "", "Not started", ""], ["Brickwork above Lintel", "2026-11-20", "2026-11-23", 0, "", "", "Not started", ""], ["Centering Roof", "2026-11-25", "2026-11-28", 0, "", "", "Not started", ""], ["Bar Bending (Roof)", "2026-11-27", "2026-11-29", 0, "", "", "Not started", ""], ["Roof Concrete", "2026-11-30", "2026-11-30", 1, "", "", "Not started", ""], ["Door and windows fixing", "2026-12-15", "2026-12-20", 0, "", "", "Not started", ""], ["Inner plaster", "2026-12-16", "2026-12-30", 0, "", "", "Not started", ""]];
+const schQ=()=>S.sch||(S.sch={floors:[],rows:[]});
+let SF='';const SD={},SO={},SC={};
+const schFloors=()=>[...new Set([...(schQ().floors||[]),...schQ().rows.map(r=>r.floor)])];
+const emptyDef=()=>DEF_FLOORS.filter(f=>!schQ().rows.some(r=>r.floor===f));
+const schSort=a=>a.slice().sort((x,y)=>x.seq-y.seq||x.id-y.id);
+const deriveSt=(a,e)=>e?'Completed':a?'In progress':'Not started';
+function syncSt(st,a,e){if(e)return'Completed';if(!SCH_ST.includes(st))return deriveSt(a,e);if(st==='Completed')return a?'In progress':'Not started';if(st==='Not started'&&a)return'In progress';return st}
+const stOf=r=>SCH_ST.includes(r.st)?syncSt(r.st,r.as,r.ae):deriveSt(r.as,r.ae);
+function schDelay(r,td){td=td||today();if(r.ae)return Math.max(0,dDiff(r.ae,r.pe));if(r.as)return Math.max(0,dDiff(r.as,r.ps),dDiff(td,r.pe));return Math.max(0,dDiff(td,r.ps))}
+const stCol={Completed:'#2f9e44','In progress':'#1c64b8','On hold':'#b7791f','Not started':'#868e96'};
+const withD=r=>SD[r.id]?{...r,...SD[r.id]}:r;
+function schObs(){const td=today(),out=[];
+ schFloors().forEach(f=>{const rs=schSort(schQ().rows.filter(r=>r.floor===f)).map(withD);if(!rs.length)return;
+  const n=rs.length,sts=rs.map(stOf),done=sts.filter(x=>x==='Completed').length,run=sts.filter(x=>x==='In progress').length;
+  const late=rs.map(r=>({r,d:schDelay(r,td),s:stOf(r)})).filter(x=>x.d>0&&x.s!=='Completed').sort((a,b)=>b.d-a.d);
+  out.push('<b>'+esc(f)+'</b>: '+done+' of '+n+' activities completed ('+Math.round(done/n*100)+'%), '+run+' in progress'+(late.length?', <span class="out">'+late.length+' running late</span>':', none running late')+'.');
+  if(late.length)out.push('&nbsp;&nbsp;⚠ Most delayed: '+late.slice(0,3).map(x=>esc(x.r.name)+' (+'+x.d+'d)').join(', ')+'.');
+  const lc=late.filter(x=>x.r.conc);if(lc.length)out.push('&nbsp;&nbsp;🟩 Concrete work behind schedule: '+lc.map(x=>esc(x.r.name)).join(', ')+' – curing time may push the later work.');
+  const nr=late.filter(x=>x.s!=='On hold'&&!(x.r.rm||'').trim());if(nr.length)out.push('&nbsp;&nbsp;📝 '+nr.length+' delayed '+(nr.length>1?'activities have':'activity has')+' no remark yet – add the reason.');
+  const up=rs.filter(r=>stOf(r)==='Not started'&&r.ps>=td&&dDiff(r.ps,td)<=7);if(up.length)out.push('&nbsp;&nbsp;📅 Starting in the next 7 days: '+up.map(r=>esc(r.name)+' ('+fdw(r.ps)+')').join(', ')+'.');
+  const hold=rs.filter(r=>stOf(r)==='On hold');if(hold.length)out.push('&nbsp;&nbsp;⏸ On hold: '+hold.map(r=>esc(r.name)).join(', ')+'.');
+  if(done===n){const lastE=rs.reduce((m,r)=>r.ae>m?r.ae:m,''),lastP=rs.reduce((m,r)=>r.pe>m?r.pe:m,''),dd=dDiff(lastE,lastP);out.push('&nbsp;&nbsp;✅ Floor finished '+(dd>0?dd+' day(s) late':dd<0?-dd+' day(s) early':'on time')+'.')}});
+ return out.length?out.map(x=>'<div style="margin:3px 0">'+(x.startsWith('&nbsp;')?x:'• '+x)+'</div>').join(''):'<span class="mu">No activities yet.</span>'}
+function cardsHtml(rs){const td=today(),sts=rs.map(stOf),n=rs.length,done=sts.filter(x=>x==='Completed').length,run=sts.filter(x=>x==='In progress').length,nd=rs.filter(r=>schDelay(r,td)>0).length;
+ return '<div class="cards" style="grid-template-columns:repeat(4,1fr)"><div class="c"><small>Activities</small><b>'+n+'</b></div><div class="c"><small>Completed</small><b>'+done+'</b></div><div class="c"><small>In progress</small><b>'+run+'</b></div><div class="c"><small>Delayed</small><b class="'+(nd?'out':'')+'">'+nd+'</b></div></div>'+(n?'<div class="pgb"><i style="width:'+Math.round(done/n*100)+'%"></i></div><div class="mu" style="margin-bottom:6px">'+Math.round(done/n*100)+'% of activities completed</div>':'')}
+/* ---------- planned-vs-actual chart ---------- */
+function schChart(rows,from,to,floor,td){
+ const vis=rows.map((r,i)=>({r,n:i+1})).filter(({r})=>{const s=[r.ps,r.as||r.ps].sort()[0],e=[r.pe,r.ae||r.as||r.pe].sort().pop();return s<=to&&e>=from});if(!vis.length)return null;
+ const nd=dDiff(to,from)+1,DW=38,X0=270,RH=62,BAND=44,PW=175,AW=225,TOPY=150,plotH=BAND+vis.length*RH,W=X0+nd*DW+16+PW+AW,H=TOPY+plotH+96;
+ const sc=Math.min(2,16000/W,16000/H,Math.sqrt(16e6/(W*H))),c=document.createElement('canvas');c.width=Math.round(W*sc);c.height=Math.round(H*sc);c.dataset.w=W;
+ const g=c.getContext('2d');g.scale(sc,sc);const FN='"DejaVu Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif';
+ g.fillStyle='#fff';g.fillRect(0,0,W,H);g.textBaseline='middle';
+ g.textAlign='left';g.fillStyle='#000';g.font='bold 27px '+FN;g.fillText(PROJ+' : '+floor,X0,24);
+ g.fillStyle='#444';g.font='17px '+FN;g.fillText(fl3(from)+' → '+fl3(to)+'  ·  each block = one day  ·  green = concrete work',X0,64);
+ const COL={p:['#b9d3f0','#7aa3d6'],a:['#2f7ec6','#1f5c96'],pc:['#b2e2bb','#7cc08a'],ac:['#2ca24c','#1c7a36']};
+ let lx=X0+14;[['p','Planned'],['a','Actual'],['pc','Planned concrete'],['ac','Actual concrete'],['late','Red text = late']].forEach(([k,t])=>{
+  if(k==='late'){g.strokeStyle='#d62828';g.lineWidth=1.5;g.strokeRect(lx,93,26,14);}else{g.fillStyle=COL[k][0];g.fillRect(lx,93,26,14);g.strokeStyle=COL[k][1];g.lineWidth=1.3;g.strokeRect(lx,93,26,14)}
+  g.fillStyle='#222';g.font='16px '+FN;g.fillText(t,lx+35,100);lx+=35+g.measureText(t).width+22});
+ const RY=TOPY+BAND;
+ vis.forEach(({r},i)=>{const y=RY+i*RH;g.fillStyle=r.conc?'#e3f4e6':(i%2===0?'#edf3fb':'#fff');g.fillRect(X0,y,nd*DW,RH)});
+ g.strokeStyle='#cfcfcf';g.lineWidth=1;for(let k=0;k<=nd;k++){const x=Math.round(X0+k*DW)+.5;g.beginPath();g.moveTo(x,TOPY);g.lineTo(x,TOPY+plotH);g.stroke()}
+ let k0=0;for(let k=1;k<=nd;k++){if(k===nd||addD(from,k).slice(0,7)!==addD(from,k0).slice(0,7)){const d0=addD(from,k0),segW=(k-k0)*DW,full=MNF[+d0.slice(5,7)-1]+' '+d0.slice(0,4);g.fillStyle='#1a3a63';g.font='bold 19px '+FN;g.textAlign='center';const lab=segW>=g.measureText(full).width+16?full:segW>=70?MN[+d0.slice(5,7)-1].toUpperCase():'';if(lab)g.fillText(lab,X0+(k0+k)/2*DW,TOPY+BAND/2);k0=k}}
+ g.textAlign='left';g.font='bold 18px '+FN;g.fillStyle='#555';g.fillText('PLANNED',X0+nd*DW+16,TOPY+BAND/2);g.fillStyle='#1a3a63';g.fillText('ACTUAL',X0+nd*DW+16+PW,TOPY+BAND/2);
+ const fit=(t,m)=>{if(g.measureText(t).width<=m)return t;while(t.length>1&&g.measureText(t+'…').width>m)t=t.slice(0,-1);return t+'…'};
+ const X=d=>X0+dDiff(d,from)*DW,blk=(d,y,k)=>{if(d<from||d>to)return;g.fillStyle=COL[k][0];g.fillRect(X(d)+2.5,y,DW-5,22);g.strokeStyle=COL[k][1];g.lineWidth=1.3;g.strokeRect(X(d)+2.5,y,DW-5,22)};
+ vis.forEach(({r,n},i)=>{const y=RY+i*RH,dl=schDelay(r,td);
+  g.textAlign='right';g.font=(r.conc?'bold ':'')+'18px '+FN;g.fillStyle=r.conc?'#1e7a34':'#111';g.fillText(fit(n+'. '+r.name,X0-22),X0-8,y+RH/2);
+  for(let d=r.ps;d<=r.pe;d=addD(d,1))blk(d,y+9,r.conc?'pc':'p');
+  if(r.as){const e=r.ae||r.as;for(let d=r.as;d<=e;d=addD(d,1))blk(d,y+33,r.conc?'ac':'a')}
+  const tx=X0+nd*DW+16;g.textAlign='left';g.fillStyle='#666';g.font='16px '+FN;g.fillText(fs3(r.ps)+' – '+fs3(r.pe),tx,y+22);g.fillText((dDiff(r.pe,r.ps)+1)+' day'+(dDiff(r.pe,r.ps)?'s':''),tx,y+43);
+  const late=!!r.as&&dl>0,ax=tx+PW,st=stOf(r);
+  if(r.as){g.fillStyle=late?'#d62828':'#222';g.font='16px '+FN;g.fillText(fs3(r.as)+' – '+(r.ae?fs3(r.ae):'ongoing'),ax,y+22);g.fillText(r.ae?((dDiff(r.ae,r.as)+1)+' day'+(dDiff(r.ae,r.as)?'s':'')+(dl>0?' · '+dl+' late':'')):('in progress'+(dl>0?' · '+dl+' late':'')),ax,y+43)}
+  else{g.fillStyle=st==='On hold'?'#b7791f':'#999';g.font='italic 16px '+FN;g.fillText(st==='On hold'?'on hold':'not started',ax,y+RH/2)}});
+ g.strokeStyle='#000';g.lineWidth=1.5;g.beginPath();g.moveTo(X0,TOPY);g.lineTo(X0,TOPY+plotH);g.lineTo(X0+nd*DW,TOPY+plotH);g.stroke();
+ if(td>=from&&td<=to){const x=X0+(dDiff(td,from)+.5)*DW;g.strokeStyle='#d62828';g.lineWidth=3;g.setLineDash([2,5]);g.beginPath();g.moveTo(x,TOPY);g.lineTo(x,TOPY+plotH);g.stroke();g.setLineDash([]);
+  g.fillStyle='#fff';g.fillRect(x-33,RY+4,66,25);g.strokeStyle='#d62828';g.lineWidth=1.5;g.strokeRect(x-33,RY+4,66,25);g.fillStyle='#d62828';g.font='bold 16px '+FN;g.textAlign='center';g.fillText('Today',x,RY+17)}
+ g.fillStyle='#111';g.font='16px '+FN;g.textAlign='center';
+ for(let k=0;k<nd;k++){const d=addD(from,k),x=X0+(k+.5)*DW,by=TOPY+plotH;g.fillText(String(+d.slice(8)),x,by+20);g.fillText(DAYN[new Date(dN(d)).getUTCDay()],x,by+39);if(k===0||d.slice(8)==='01')g.fillText(MN[+d.slice(5,7)-1],x,by+58)}
+ return c}
+function schWin(rows,td){const sp=SC[SF]||(SC[SF]={span:21,from:null,full:innerWidth<700});if(!rows.length)return{sp,from:td,to:td};
+ const first=rows.reduce((m,r)=>r.ps<m?r.ps:m,rows[0].ps),last=rows.reduce((m,r)=>{const e=[r.pe,r.ae||r.as||r.pe].sort().pop();return e>m?e:m},rows[0].pe);
+ if(!sp.span)return{sp,from:first,to:last};
+ if(!sp.from)sp.from=[[addD(td,-3),first].sort().pop(),[addD(last,-(sp.span-1)),first].sort().pop()].sort()[0];return{sp,from:sp.from,to:addD(sp.from,sp.span-1)}}
+function chartHtml(){const sp=SC[SF]||(SC[SF]={span:21,from:null,full:innerWidth<700});
+ return '<details class="sec" open><summary><b>📊 Planned vs actual chart</b></summary><div class="mu" style="margin:6px 0">Light blocks = planned, solid blocks = actual. Each block is one day. Green = concrete work. Red text = late. Choose how many days to show and move forward or back.</div><div class="seg" id="s_sp" style="flex-wrap:wrap;margin-bottom:8px">'+[14,21,28,42,0].map(k=>'<button data-sp="'+k+'" class="'+(sp.span===k?'on':'')+'">'+(k?k+' days':'Whole floor')+'</button>').join('')+'</div>'
+  +(sp.span?'<div class="two" style="align-items:end"><div class="acts" style="margin:0"><button id="s_pv">◀ Earlier</button><button id="s_nx">Later ▶</button></div><div><label>Show from</label><input type="date" id="s_fr"></div></div>':'')
+  +'<div id="s_cv" style="margin-top:10px;border:1px solid var(--bd);border-radius:10px;background:#fff;overflow-x:auto"></div><div class="acts"><button id="s_fs">'+(sp.full?'↔ Fit to screen':'↔ Full size')+'</button><button id="s_im" class="p">🖼 Download chart as image</button></div></details>'}
+function chartBind(rows){const td=today(),{sp,from,to}=schWin(rows,td),box=$('s_cv'),cv=schChart(rows,from,to,SF,td);
+ if(cv){cv.style.width=sp.full?cv.dataset.w+'px':'100%';cv.style.height='auto';box.appendChild(cv)}else box.innerHTML='<div class="mu" style="padding:14px">No activities fall in these dates. Use ◀ Earlier / Later ▶ or choose Whole floor.</div>';
+ $('s_sp').onclick=e=>{const b=e.target.closest('button');if(b){sp.span=+b.dataset.sp;sp.from=null;schView()}};
+ if(sp.span){$('s_pv').onclick=()=>{sp.from=addD(sp.from,-sp.span);schView()};$('s_nx').onclick=()=>{sp.from=addD(sp.from,sp.span);schView()};$('s_fr').value=sp.from;$('s_fr').onchange=e=>{if(e.target.value){sp.from=e.target.value;schView()}}}
+ $('s_fs').onclick=()=>{sp.full=!sp.full;schView()};
+ $('s_im').onclick=()=>{if(!cv){alert('Nothing to draw in these dates.');return}cv.toBlob(b=>dl('Star_Builders_'+SF.replace(/[^A-Za-z0-9]+/g,'_')+'_schedule_chart.png',b),'image/png')}}
+/* ---------- the Schedule tab ---------- */
+function schBar(){const n=Object.keys(SD).length,show=n&&TAB===4;$('schbar').style.display=show?'flex':'none';if(show)$('sb_msg').textContent=n+' unsaved change'+(n>1?'s':'')}
+function schView(){const fl=schFloors();if(!SF||!fl.includes(SF))SF=fl[0]||'';const td=today(),all=schSort(schQ().rows.filter(r=>r.floor===SF)),rs=all.map(withD);
+ let h='<div class="mu" style="margin:0 0 8px">Planned dates come from the plan. <b>Actual Start, Actual End and Status</b> are for you to enter – put the start date on the day work starts, and the end date whenever it finishes (it can be filled in later). Add a remark when an activity is delayed.</div>';
+ h+='<details class="sec" open><summary><h2 style="display:inline">🧰 Site engineer\'s observations</h2></summary><div style="font-size:14px;margin-top:6px">'+schObs()+'</div></details>';
+ const ef=emptyDef(),hid=(()=>{try{return localStorage.getItem('sb_def_hide')}catch(e){return''}})();
+ if(ADMIN&&ef.length&&!hid)h+='<div class="sec"><h2>Start here</h2><div class="mu" style="margin-bottom:8px">Load the '+DEF_SCH.length+'-activity schedule (Earth Work … Inner plaster) into: <b>'+ef.map(esc).join(', ')+'</b>. Planned dates are the same for every floor; the Ground Floor also keeps the progress already recorded.</div><button class="p" id="sch_def" style="width:100%">Load the schedule into '+(ef.length>1?'all '+ef.length+' floors':ef[0])+'</button><button id="sch_nd" style="width:100%;margin-top:8px">Not now</button></div>';
+ if(fl.length){h+='<div class="seg" id="s_fl" style="margin-bottom:8px;flex-wrap:wrap">'+fl.map(f=>'<button data-f="'+esc(f)+'" class="'+(f===SF?'on':'')+'">'+esc(f)+'</button>').join('')+'</div>'}
+ if(ADMIN)h+='<div class="acts" style="margin-bottom:10px"><button id="sch_fa">＋ Add floor</button>'+(fl.length?'<button id="sch_fr">✎ Rename</button><button id="sch_fd" style="color:var(--rd)">🗑 Remove floor</button>':'')+'</div>';
+ if(!fl.length)h+='<div class="mu" style="text-align:center;padding:24px 8px">No floors have been set up yet.'+(ADMIN?'':'<br>The admin can add floors and activities here.')+'</div>';
+ else{
+  h+=cardsHtml(rs);
+  if(rs.length){const f0=rs.reduce((m,r)=>r.ps<m?r.ps:m,rs[0].ps),e0=rs.reduce((m,r)=>r.pe>m?r.pe:m,rs[0].pe);h+='<div class="mu" style="margin-bottom:10px"><b>Planned:</b> '+fdw(f0)+' → '+fdw(e0)+' &nbsp;·&nbsp; 🟩 = concrete work</div>'}
+  const need=rs.filter(r=>schDelay(r,td)>0&&stOf(r)!=='On hold'&&!(r.rm||'').trim());
+  h+='<div id="sch_need">'+(need.length?'<div class="sec" style="border-color:var(--rd)"><b class="out">Delayed – don\'t forget to add a remark for:</b> '+need.map(r=>esc(r.name)).join(', ')+'</div>':'')+'</div>';
+  if(rs.length)h+='<div class="mu" style="margin:2px 0 8px">Tap an activity to enter its actual dates, status and remarks, then press <b>💾 Save</b>.</div>';
+  else h+='<div class="mu" style="text-align:center;padding:16px 8px">No activities on this floor yet.'+(ADMIN?'':'<br>The admin can add them here.')+'</div>';
+  h+=rs.map((r,i)=>{const st=stOf(r),d=schDelay(r,td);return '<details class="sc" data-id="'+r.id+'"'+(SO[r.id]?' open':'')+'><summary><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><b>'+(i+1)+'. '+(r.conc?'🟩 ':'')+esc(r.name)+'<span class="dot" style="color:var(--rd)">'+(SD[r.id]?' ●':'')+'</span></b><span class="stb" style="color:'+stCol[st]+';border-color:'+stCol[st]+'">'+st+'</span></div><div class="s">Planned: '+fdw(r.ps)+' → '+fdw(r.pe)+'</div><div class="out dly" style="font-size:13px">'+(d>0?'Delayed '+d+' day'+(d>1?'s':''):'')+'</div></summary>'
+   +'<div class="two"><div><label>Actual Start ✏️</label><input type="date" data-k="as" value="'+(r.as||'')+'"></div><div><label>Actual End ✏️</label><input type="date" data-k="ae" value="'+(r.ae||'')+'"></div></div><label>Status ✏️</label><select data-k="st">'+SCH_ST.map(x=>'<option'+(x===st?' selected':'')+'>'+x+'</option>').join('')+'</select><label>Remarks (if delayed) ✏️</label><input data-k="rm" value="'+esc(r.rm||'')+'" placeholder="Reason for the delay"><div class="out err" style="margin-top:6px;font-size:13px"></div>'+(ADMIN?'<button type="button" class="spe" style="margin-top:8px">✎ Edit name / planned dates</button>':'')+'</details>'}).join('');
+  if(rs.length)h+=chartHtml();
+  if(ADMIN){
+   h+='<details class="sec"><summary><b>➕ Add / remove an activity</b></summary><div class="mu" style="margin:6px 0">Add an activity with its planned start and end date. It is placed in date order and you can then enter its actual dates and remarks like the others.</div><label>Activity name *</label><input id="sa_nm" placeholder="e.g. Flooring"><div class="two"><div><label>Planned start</label><input type="date" id="sa_ps" value="'+(rs.length?rs.reduce((m,r)=>r.pe>m?r.pe:m,rs[0].pe):td)+'"></div><div><label>Planned end</label><input type="date" id="sa_pe" value="'+(rs.length?rs.reduce((m,r)=>r.pe>m?r.pe:m,rs[0].pe):td)+'"></div></div><label style="display:flex;gap:8px;align-items:center;color:var(--tx)"><input type="checkbox" id="sa_cc" style="width:auto">This is concrete work (shown in green)</label><button class="p" id="sa_add" style="width:100%;margin-top:8px">Add activity</button>'
+    +(rs.length?'<label style="margin-top:12px">Remove an activity</label><select id="sa_pick"><option value="">—</option>'+all.map((r,i)=>'<option value="'+r.id+'">'+(i+1)+'. '+esc(r.name)+'</option>').join('')+'</select><label style="display:flex;gap:8px;align-items:center;color:var(--tx);margin-top:6px"><input type="checkbox" id="sa_sure" style="width:auto">Yes, remove it (its actual dates and remarks are deleted too)</label><button id="sa_rm" style="width:100%;margin-top:8px;color:var(--rd)" disabled>Remove activity</button>':'')+'</details>';
+   if(rs.length)h+='<details class="sec"><summary><b>⚙️ Change planned floor start date</b></summary><div class="mu" style="margin:6px 0">This re-plans the floor: every planned date moves by the same number of days. Actual dates, status and remarks are not touched.</div><label>New planned start</label><input type="date" id="sch_ns" value="'+rs.reduce((m,r)=>r.ps<m?r.ps:m,rs[0].ps)+'"><button class="p" id="sch_rp" style="width:100%;margin-top:8px">Re-plan this floor</button></details>';
+   h+='<div class="acts"><button id="sch_imp">⬆ Import schedule (CSV / Excel)</button></div>'}
+  if(rs.length)h+='<div class="acts"><button class="p" id="sch_x1">⬇ Download as Excel</button><button id="sch_xa">⬇ All floors (Excel)</button></div><div class="acts"><button id="sch_csv">⬇ Download as CSV</button></div>'}
+ $('v4').innerHTML=h;schBar();
+ if($('s_fl'))$('s_fl').onclick=e=>{const b=e.target.closest('button');if(b){SF=b.dataset.f;schView()}};
+ if($('sch_nd'))$('sch_nd').onclick=()=>{try{localStorage.setItem('sb_def_hide','1')}catch(e){}schView()};
+ if($('sch_def'))$('sch_def').onclick=()=>{const e2=emptyDef();if(!confirm('Load the '+DEF_SCH.length+' activities into '+e2.join(', ')+'?'))return;
+  e2.forEach(f=>{if(!schFloors().includes(f))mutate({t:'schFloorAdd',name:f});mutate({t:'schImport',floor:f,replace:false,rows:DEF_SCH.map((a,i)=>f==='Ground Floor'?{id:newId(),seq:i+1,name:a[0],ps:a[1],pe:a[2],conc:!!a[3],as:a[4],ae:a[5],st:a[6],rm:a[7]}:{id:newId(),seq:i+1,name:a[0],ps:a[1],pe:a[2],conc:!!a[3],as:'',ae:'',st:'Not started',rm:''})})});SF=e2[0];toast('Schedule loaded into '+e2.length+' floor'+(e2.length>1?'s':''))};
+ if($('sch_fa'))$('sch_fa').onclick=()=>{const v=(prompt('Name of the new floor')||'').trim();if(v&&!schFloors().some(x=>x.toLowerCase()===v.toLowerCase())){mutate({t:'schFloorAdd',name:v});SF=v;schView()}};
+ if($('sch_fr'))$('sch_fr').onclick=()=>{const v=(prompt('Rename "'+SF+'" to',SF)||'').trim();if(v&&v!==SF&&!schFloors().some(x=>x.toLowerCase()===v.toLowerCase())){const o=SF;SF=v;mutate({t:'schFloorRen',from:o,to:v})}};
+ if($('sch_fd'))$('sch_fd').onclick=()=>{if(confirm('Remove the floor "'+SF+'" and all its '+rs.length+' activities?\nThis cannot be undone.')){const o=SF;SF='';mutate({t:'schFloorDel',name:o})}};
+ if($('sa_add'))$('sa_add').onclick=()=>{const nm=$('sa_nm').value.trim(),ps=$('sa_ps').value,pe=$('sa_pe').value;if(!nm){alert('Enter the activity name.');return}if(!ps||!pe){alert('Enter the planned start and end dates.');return}if(pe<ps){alert('Planned end cannot be before planned start.');return}
+  const k=all.findIndex(r=>r.ps>ps||(r.ps===ps&&r.pe>pe)),seq=k<0?(all.length?all[all.length-1].seq+1:1):k===0?all[0].seq-1:Math.round((all[k-1].seq+all[k].seq)/2*1e6)/1e6;
+  mutate({t:'schPut',row:{id:newId(),floor:SF,seq,name:nm,ps,pe,conc:$('sa_cc').checked,as:'',ae:'',st:'Not started',rm:''}});toast('Added: '+nm)};
+ if($('sa_pick')){const upd=()=>{$('sa_rm').disabled=!($('sa_sure').checked&&$('sa_pick').value)};$('sa_pick').onchange=upd;$('sa_sure').onchange=upd;
+  $('sa_rm').onclick=()=>{const id=+$('sa_pick').value;if(id){delete SD[id];mutate({t:'schDel',id});toast('Activity removed')}}}
+ if($('sch_rp'))$('sch_rp').onclick=()=>{const v=$('sch_ns').value,f0=rs.reduce((m,r)=>r.ps<m?r.ps:m,rs[0].ps),dd=v?dDiff(v,f0):0;if(!dd){alert('Choose a different planned start date.');return}if(confirm('Move every planned date of '+SF+' by '+dd+' day(s)?'))mutate({t:'schReplan',floor:SF,days:dd})};
+ if($('sch_imp'))$('sch_imp').onclick=()=>$('sch_fi').click();
+ if($('sch_x1'))$('sch_x1').onclick=()=>schXlsx([SF]);if($('sch_xa'))$('sch_xa').onclick=()=>schXlsx(schFloors());if($('sch_csv'))$('sch_csv').onclick=()=>schCsv(all.map(withD));
+ if(rs.length)chartBind(rs)}
+function schLive(card){const id=+card.dataset.id,r=schQ().rows.find(x=>x.id==id);if(!r)return;
+ const v=k=>card.querySelector('[data-k='+k+']').value,a=v('as'),e=v('ae'),sel=card.querySelector('[data-k=st]');
+ const st=syncSt(sel.value,a,e);sel.value=st;const cur={as:a,ae:e,st,rm:v('rm').trim()},same=cur.as===(r.as||'')&&cur.ae===(r.ae||'')&&cur.st===stOf(r)&&cur.rm===(r.rm||'');
+ if(same)delete SD[id];else SD[id]=cur;const x={...r,...cur},d=schDelay(x),b=card.querySelector('.stb');
+ b.textContent=st;b.style.color=b.style.borderColor=stCol[st];card.querySelector('.dly').textContent=d>0?'Delayed '+d+' day'+(d>1?'s':''):'';card.querySelector('.dot').textContent=same?'':' ●';
+ card.querySelector('.err').textContent=a&&e&&e<a?'Actual End is before Actual Start.':'';
+ const td=today(),need=schSort(schQ().rows.filter(q=>q.floor===SF)).map(withD).filter(q=>schDelay(q,td)>0&&stOf(q)!=='On hold'&&!(q.rm||'').trim());
+ $('sch_need').innerHTML=need.length?'<div class="sec" style="border-color:var(--rd)"><b class="out">Delayed – don\'t forget to add a remark for:</b> '+need.map(q=>esc(q.name)).join(', ')+'</div>':'';schBar()}
+$('v4').addEventListener('input',e=>{const c=e.target.closest('.sc');if(c&&e.target.dataset.k)schLive(c)});
+$('v4').addEventListener('change',e=>{const c=e.target.closest('.sc');if(c&&e.target.dataset.k)schLive(c)});
+$('v4').addEventListener('toggle',e=>{if(e.target.classList&&e.target.classList.contains('sc'))SO[e.target.dataset.id]=e.target.open},true);
+$('v4').addEventListener('click',e=>{const b=e.target.closest('.spe');if(b)spOpen(+b.closest('.sc').dataset.id)});
+$('sb_dis').onclick=()=>{Object.keys(SD).forEach(k=>delete SD[k]);schView()};
+$('sb_sv').onclick=()=>{const bad=[];Object.keys(SD).forEach(id=>{const v=SD[id];if(v.as&&v.ae&&v.ae<v.as){const r=schQ().rows.find(x=>x.id==id);bad.push((r?r.name:id)+': Actual End is before Actual Start')}});
+ if(bad.length){alert('Please fix before saving:\n\n'+bad.join('\n'));return}
+ const ids=Object.keys(SD),late=[];ids.forEach(id=>{const r=schQ().rows.find(x=>x.id==id);if(!r)return;const row={...r,...SD[id]};row.st=syncSt(row.st,row.as,row.ae);if(schDelay(row)>0&&row.st!=='On hold'&&!row.rm)late.push(r.name);delete SD[id];mutate({t:'schPut',row})});
+ toast(late.length?'Saved – please add a remark for: '+late.slice(0,3).join(', '):ONLINE?'Saving…':'Saved ✓');schView()};
+/* ---------- downloads ---------- */
+function schCsv(rs){const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"',td=today();
+ const lines=[['#','Activity','Planned Start','Planned End','Actual Start','Actual End','Status','Delay (days)','Remarks'].map(q).join(',')];
+ rs.forEach((r,i)=>lines.push([i+1,(r.conc?'🟩 ':'')+r.name,r.ps,r.pe,r.as||'',r.ae||'',stOf(r),schDelay(r,td),r.rm||''].map(q).join(',')));
+ dl(SF.replace(/\s+/g,'_')+'_schedule.csv',new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv'}))}
+function schXlsx(floors){const wb=XLSX.utils.book_new(),td=today();let any=false;
+ floors.forEach(f=>{const rs=schSort(schQ().rows.filter(r=>r.floor===f));if(!rs.length)return;any=true;
+  const cv=v=>v?xs(+v.slice(0,4),+v.slice(5,7),+v.slice(8,10)):'',head=['#','Activity','Planned Start','Planned End','Actual Start','Actual End','Status','Delay (days)','Remarks'];
+  const aoa=[head,...rs.map((r,i)=>[i+1,(r.conc?'🟩 ':'')+r.name,cv(r.ps),cv(r.pe),cv(r.as),cv(r.ae),stOf(r),schDelay(r,td),r.rm||''])],ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols']=[{wch:5},{wch:32},{wch:14},{wch:14},{wch:14},{wch:14},{wch:13},{wch:12},{wch:40}];
+  aoa.forEach((r,ri)=>{if(ri)[2,3,4,5].forEach(ci=>{const c=ws[XLSX.utils.encode_cell({r:ri,c:ci})];if(c&&c.t==='n')c.z='dd-mmm-yyyy'})});
+  XLSX.utils.book_append_sheet(wb,ws,f.replace(/[\\\/?*\[\]:]/g,'').slice(0,31))});
+ if(!any){alert('There is no schedule to download yet.');return}
+ return dl(floors.length===1?floors[0].replace(/\s+/g,'_')+'_schedule.xlsx':'Star_Builders_Schedule.xlsx',new Uint8Array(XLSX.write(wb,{type:'array',bookType:'xlsx'})))}
+/* ---------- edit name / planned dates (admin) ---------- */
+let spEdit=null;
+function spOpen(id){const r=schQ().rows.find(x=>x.id==id);if(!r)return;spEdit=id;$('sp_t').textContent='Edit activity';$('sp_fl').textContent='Floor: '+r.floor;$('sp_nm').value=r.name;$('sp_ps').value=r.ps;$('sp_pe').value=r.pe;$('sp_cc').checked=!!r.conc;$('spdlg').showModal()}
+$('sp_cancel').onclick=()=>$('spdlg').close();
+$('sp_save').onclick=()=>{const nm=$('sp_nm').value.trim(),ps=$('sp_ps').value,pe=$('sp_pe').value;if(!nm){alert('Enter the activity name.');return}if(!ps||!pe){alert('Enter the planned start and end dates.');return}if(pe<ps){alert('Planned end cannot be before planned start.');return}
+ $('spdlg').close();mutate({t:'schPlan',row:{id:spEdit,name:nm,ps,pe,conc:$('sp_cc').checked}});toast('Saved')};
+/* ---------- import (CSV / Excel exported from the old schedule page) ---------- */
+function pDate(v){if(v==null||v==='')return'';const z=n=>String(n).padStart(2,'0');
+ if(v instanceof Date){const d=new Date(v.getTime()+43200000);return d.getUTCFullYear()+'-'+z(d.getUTCMonth()+1)+'-'+z(d.getUTCDate())}
+ if(typeof v==='number'){const d=new Date(Math.round((v-25569)*864e5));return d.getUTCFullYear()+'-'+z(d.getUTCMonth()+1)+'-'+z(d.getUTCDate())}
+ const t=String(v).trim();let m=t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return m[1]+'-'+z(m[2])+'-'+z(m[3]);
+ m=t.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);if(m)return(m[3].length===2?'20'+m[3]:m[3])+'-'+z(m[2])+'-'+z(m[1]);
+ m=t.match(/(\d{1,2})[\s\-]+([A-Za-z]{3})[A-Za-z]*[\s\-,]+(\d{2,4})/);const mi=m?MN.findIndex(x=>x.toLowerCase()===m[2].toLowerCase()):-1;if(mi>=0)return(m[3].length===2?'20'+m[3]:m[3])+'-'+z(mi+1)+'-'+z(m[1]);return''}
+$('sch_fi').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+ try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true}),ws=wb.Sheets[wb.SheetNames[0]],aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+  const hi=aoa.findIndex(r=>r.some(c=>/^activity$|^name$/i.test(String(c).trim())));if(hi<0){alert('Could not find an "Activity" column in this file.');return}
+  const H=aoa[hi].map(c=>String(c).trim().toLowerCase()),ix=k=>H.findIndex(h=>k.some(x=>h===x||h.startsWith(x)));
+  const iN=ix(['activity','name']),iPS=ix(['planned start']),iPE=ix(['planned end']),iAS=ix(['actual start']),iAE=ix(['actual end']),iST=ix(['status']),iRM=ix(['remark']),iCC=ix(['concrete']);
+  if(iPS<0||iPE<0){alert('The file needs "Planned Start" and "Planned End" columns.');return}
+  const rows=[];let bad=0;aoa.slice(hi+1).forEach(r=>{let nm=String(r[iN]||'').trim();if(!nm)return;const cc=/^🟩/.test(nm)||(iCC>=0&&/^(1|y|yes|true)$/i.test(String(r[iCC]).trim()));nm=nm.replace(/^🟩\s*/,'');
+   const ps=pDate(r[iPS]),pe=pDate(r[iPE]);if(!ps||!pe||pe<ps){bad++;return}const as=iAS>=0?pDate(r[iAS]):'',ae=iAE>=0?pDate(r[iAE]):'',st0=iST>=0?String(r[iST]).trim():'';
+   rows.push({id:newId(),seq:rows.length+1,name:nm,ps,pe,conc:cc,as,ae,st:SCH_ST.includes(st0)?syncSt(st0,as,ae):deriveSt(as,ae),rm:iRM>=0?String(r[iRM]).trim():''})});
+  if(!rows.length){alert('No valid activities found (check the planned dates).');return}
+  if(!SF){alert('Add a floor first, then import into it.');return}
+  if(!confirm('Import '+rows.length+' activities into "'+SF+'"'+(bad?' ('+bad+' rows skipped – bad dates)':'')+'?'))return;
+  const ex=schQ().rows.filter(r=>r.floor===SF).length,rep=ex?confirm('This floor already has '+ex+' activities.\n\nOK = replace them with the imported ones\nCancel = keep them and add the imported ones'):false;
+  mutate({t:'schImport',floor:SF,replace:rep,rows});toast('Imported '+rows.length+' activities')}catch(x){alert('Could not read this file: '+x.message)}};
+
 // menu
 $('mn').onclick=()=>$('mdl').showModal();
 let sMode='add';
@@ -421,13 +618,22 @@ function applyOp(st,op){
  else if(op.t==='bulk'||op.t==='seed')op.sites.forEach(x=>{const s=site(x.name);x.rows.forEach(r=>put(s,r));(x.att||[]).forEach(a=>putA(s,a))})
  else if(op.t==='attPut')putA(site(op.site),op.row)
  else if(op.t==='attDel')st.sites.forEach(s=>{s.att=(s.att||[]).filter(x=>x.id!=op.id)})
- else if(op.t==='rate'){st.rates=st.rates||{};if(+op.amt>0)st.rates[op.lab]=+op.amt;else delete st.rates[op.lab]}}
+ else if(op.t==='rate'){st.rates=st.rates||{};if(+op.amt>0)st.rates[op.lab]=+op.amt;else delete st.rates[op.lab]}
+ else if(op.t.startsWith('sch')){const q=st.sch||(st.sch={floors:[],rows:[]});q.floors=q.floors||[];const fl=n=>{if(!q.floors.includes(n))q.floors.push(n)};
+  if(op.t==='schPut'){const r=op.row,j=q.rows.findIndex(x=>x.id==r.id);if(j>=0)q.rows[j]={...q.rows[j],as:r.as,ae:r.ae,st:r.st,rm:r.rm};else{fl(r.floor);q.rows.push({...r})}}
+  else if(op.t==='schPlan'){const j=q.rows.findIndex(x=>x.id==op.row.id);if(j>=0)q.rows[j]={...q.rows[j],name:op.row.name,ps:op.row.ps,pe:op.row.pe,conc:op.row.conc}}
+  else if(op.t==='schDel')q.rows=q.rows.filter(x=>x.id!=op.id);
+  else if(op.t==='schFloorAdd')fl(op.name);
+  else if(op.t==='schFloorRen'){q.floors=q.floors.map(f=>f===op.from?op.to:f);q.rows.forEach(r=>{if(r.floor===op.from)r.floor=op.to})}
+  else if(op.t==='schFloorDel'){q.floors=q.floors.filter(f=>f!==op.name);q.rows=q.rows.filter(r=>r.floor!==op.name)}
+  else if(op.t==='schReplan')q.rows.forEach(r=>{if(r.floor===op.floor){r.ps=addD(r.ps,op.days);r.pe=addD(r.pe,op.days)}});
+  else if(op.t==='schImport'){if(op.replace)q.rows=q.rows.filter(r=>r.floor!==op.floor);fl(op.floor);op.rows.forEach(r=>q.rows.push({...r,floor:op.floor}))}}}
 function setSt(){const e=$('sync');if(!ONLINE||!PW){e.textContent='';return}
  e.textContent=QUEUE.length?(OFFLINE?'⚠ Offline – '+QUEUE.length+' waiting to upload':'⟳ Saving…'):OFFLINE?'⚠ Offline – showing saved copy':'● Synced '+new Date(LASTOK||Date.now()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
  e.style.color=OFFLINE?'var(--rd)':'var(--ac)'}
 async function call(b,pw){const r=await fetch(API,{method:'POST',body:JSON.stringify({pw:pw===undefined?PW:pw,...b})});return await r.json()}
 function install(data){const nm=S.sites[S.cur]&&S.sites[S.cur].name;
- const st={cur:0,rates:{...(data.rates||{})},sites:data.sites.map(s=>({name:s.name,rows:s.rows.map(r=>({...r})),att:(s.att||[]).map(a=>({...a}))}))};
+ const st={cur:0,sch:{floors:[...((data.sch&&data.sch.floors)||[])],rows:((data.sch&&data.sch.rows)||[]).map(r=>({...r}))},rates:{...(data.rates||{})},sites:data.sites.map(s=>({name:s.name,rows:s.rows.map(r=>({...r})),att:(s.att||[]).map(a=>({...a}))}))};
  QUEUE.forEach(o=>applyOp(st,o));st.sites.forEach(s=>s.rows.forEach(r=>{r.cat=normCat(r.cat);(r.br||[]).forEach(l=>{l.cat=normCat(l.cat)})}));if(!st.sites.length)st.sites=[{name:'New site',rows:[],att:[]}];
  const i=nm?si_(st,nm):-1;st.cur=i<0?0:i;S=st;save();render()}
 function mutate(op){applyOp(S,op);save();if(ONLINE){QUEUE.push(op);saveQ();setSt();flush()}render()}
