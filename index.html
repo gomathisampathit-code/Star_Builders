@@ -144,7 +144,7 @@ function render(){
  const u=k=>[...new Set(S.sites.flatMap(s=>s.rows.map(r=>r[k])).filter(Boolean))].sort();
  $('cl').innerHTML=u('cat').map(x=>`<option value="${esc(x)}">`).join('');$('pl').innerHTML=u('to').map(x=>`<option value="${esc(x)}">`).join('');
  if(!$('v2').hidden)reports();
- if(!$('v3').hidden)attView();if(TAB===4)schView();
+ if(!$('v3').hidden)attView();if(TAB===4)schRender();
 }
 let edit=null,ty=0,BR=[],ADMIN=false;
 function formAdv(){const id=edit||1e12,rows=cur().rows.filter(r=>r.id!==edit);rows.push({id,date:$('fd').value,to:$('fp').value,adv:+$('fa').value||1e-9,br:BR.map(l=>({amt:+l.amt||0}))});return advInfo(rows)[id]}
@@ -441,7 +441,7 @@ function chartBind(rows){const td=today(),{sp,from,to}=schWin(rows,td),box=$('s_
  $('s_fs').onclick=()=>{sp.full=!sp.full;schView()};
  $('s_im').onclick=()=>{if(!cv){alert('Nothing to draw in these dates.');return}cv.toBlob(b=>dl('Star_Builders_'+SF.replace(/[^A-Za-z0-9]+/g,'_')+'_schedule_chart.png',b),'image/png')}}
 /* ---------- the Schedule tab ---------- */
-function schBar(){const n=Object.keys(SD).length,show=n&&TAB===4;$('schbar').style.display=show?'flex':'none';if(show)$('sb_msg').textContent=n+' unsaved change'+(n>1?'s':'')}
+function schBar(){const n=Object.keys(SD).length,show=n&&TAB===4;$('schbar').style.display=show?'flex':'none';if(show)$('sb_msg').textContent=n+' change'+(n>1?'s':'')+' not saved yet – fix the dates, then press Save'}
 function schView(){const fl=schFloors();if(!SF||!fl.includes(SF))SF=fl[0]||'';const td=today(),all=schSort(schQ().rows.filter(r=>r.floor===SF)),rs=all.map(withD);
  let h='<div class="mu" style="margin:0 0 8px">Planned dates come from the plan. <b>Actual Start, Actual End and Status</b> are for you to enter – put the start date on the day work starts, and the end date whenever it finishes (it can be filled in later). Add a remark when an activity is delayed.</div>';
  h+='<details class="sec" open><summary><h2 style="display:inline">🧰 Site engineer\'s observations</h2></summary><div style="font-size:14px;margin-top:6px">'+schObs()+'</div></details>';
@@ -455,7 +455,7 @@ function schView(){const fl=schFloors();if(!SF||!fl.includes(SF))SF=fl[0]||'';co
   if(rs.length){const f0=rs.reduce((m,r)=>r.ps<m?r.ps:m,rs[0].ps),e0=rs.reduce((m,r)=>r.pe>m?r.pe:m,rs[0].pe);h+='<div class="mu" style="margin-bottom:10px"><b>Planned:</b> '+fdw(f0)+' → '+fdw(e0)+' &nbsp;·&nbsp; 🟩 = concrete work</div>'}
   const need=rs.filter(r=>schDelay(r,td)>0&&stOf(r)!=='On hold'&&!(r.rm||'').trim());
   h+='<div id="sch_need">'+(need.length?'<div class="sec" style="border-color:var(--rd)"><b class="out">Delayed – don\'t forget to add a remark for:</b> '+need.map(r=>esc(r.name)).join(', ')+'</div>':'')+'</div>';
-  if(rs.length)h+='<div class="mu" style="margin:2px 0 8px">Tap an activity to enter its actual dates, status and remarks, then press <b>💾 Save</b>.</div>';
+  if(rs.length)h+='<div class="mu" style="margin:2px 0 8px">Tap an activity to enter its actual dates, status and remarks, – they are saved automatically as soon as you finish each one.</div>';
   else h+='<div class="mu" style="text-align:center;padding:16px 8px">No activities on this floor yet.'+(ADMIN?'':'<br>The admin can add them here.')+'</div>';
   h+=rs.map((r,i)=>{const st=stOf(r),d=schDelay(r,td);return '<details class="sc" data-id="'+r.id+'"'+(SO[r.id]?' open':'')+'><summary><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><b>'+(i+1)+'. '+(r.conc?'🟩 ':'')+esc(r.name)+'<span class="dot" style="color:var(--rd)">'+(SD[r.id]?' ●':'')+'</span></b><span class="stb" style="color:'+stCol[st]+';border-color:'+stCol[st]+'">'+st+'</span></div><div class="s">Planned: '+fdw(r.ps)+' → '+fdw(r.pe)+'</div><div class="out dly" style="font-size:13px">'+(d>0?'Delayed '+d+' day'+(d>1?'s':''):'')+'</div></summary>'
    +'<div class="two"><div><label>Actual Start ✏️</label><input type="date" data-k="as" value="'+(r.as||'')+'"></div><div><label>Actual End ✏️</label><input type="date" data-k="ae" value="'+(r.ae||'')+'"></div></div><label>Status ✏️</label><select data-k="st">'+SCH_ST.map(x=>'<option'+(x===st?' selected':'')+'>'+x+'</option>').join('')+'</select><label>Remarks (if delayed) ✏️</label><input data-k="rm" value="'+esc(r.rm||'')+'" placeholder="Reason for the delay"><div class="out err" style="margin-top:6px;font-size:13px"></div>'+(ADMIN?'<button type="button" class="spe" style="margin-top:8px">✎ Edit name / planned dates</button>':'')+'</details>'}).join('');
@@ -492,7 +492,16 @@ function schLive(card){const id=+card.dataset.id,r=schQ().rows.find(x=>x.id==id)
  const td=today(),need=schSort(schQ().rows.filter(q=>q.floor===SF)).map(withD).filter(q=>schDelay(q,td)>0&&stOf(q)!=='On hold'&&!(q.rm||'').trim());
  $('sch_need').innerHTML=need.length?'<div class="sec" style="border-color:var(--rd)"><b class="out">Delayed – don\'t forget to add a remark for:</b> '+need.map(q=>esc(q.name)).join(', ')+'</div>':'';schBar()}
 $('v4').addEventListener('input',e=>{const c=e.target.closest('.sc');if(c&&e.target.dataset.k)schLive(c)});
-$('v4').addEventListener('change',e=>{const c=e.target.closest('.sc');if(c&&e.target.dataset.k)schLive(c)});
+$('v4').addEventListener('change',e=>{const c=e.target.closest('.sc');if(c&&e.target.dataset.k){schLive(c);schAuto(+c.dataset.id)}});
+/* every finished edit is saved at once (no extra step); only an invalid date range waits for a fix */
+function schAuto(id){const v=SD[id];if(!v)return;const r=schQ().rows.find(x=>x.id==id);if(!r)return;if(v.as&&v.ae&&v.ae<v.as)return;
+ const row={...r,...v};row.st=syncSt(row.st,row.as,row.ae);delete SD[id];const op={t:'schPut',row};applyOp(S,op);save();
+ if(ONLINE){QUEUE.push(op);saveQ();setSt();flush()}else toast('Saved ✓');
+ const c=document.querySelector('#v4 .sc[data-id="'+id+'"]');if(c)c.querySelector('.dot').textContent='';schBar()}
+let schPend=false;const inEdit=()=>{const a=document.activeElement;return!!(a&&$('v4').contains(a)&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName))};
+function schRender(){if(inEdit()){schPend=true;return}schPend=false;schView()}
+$('v4').addEventListener('focusout',()=>{setTimeout(()=>{if(schPend&&!inEdit())schRender()},200)});
+window.addEventListener('beforeunload',e=>{if(Object.keys(SD).length){e.preventDefault();e.returnValue=''}});
 $('v4').addEventListener('toggle',e=>{if(e.target.classList&&e.target.classList.contains('sc'))SO[e.target.dataset.id]=e.target.open},true);
 $('v4').addEventListener('click',e=>{const b=e.target.closest('.spe');if(b)spOpen(+b.closest('.sc').dataset.id)});
 $('sb_dis').onclick=()=>{Object.keys(SD).forEach(k=>delete SD[k]);schView()};
