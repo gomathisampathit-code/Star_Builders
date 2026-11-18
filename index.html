@@ -358,7 +358,7 @@ function rxa(){const D=attData(),wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,t.t.replace(/[\\\/?*\[\]:]/g,'').slice(0,31))});
  return dl('Star_Builders_Attendance_Report.xlsx',new Uint8Array(XLSX.write(wb,{type:'array',bookType:'xlsx'})))}
 /* ===================== CONSTRUCTION SCHEDULE (Schedule tab) ===================== */
-const PROJ='CMS School – Barchant';
+const PROJ='CMS School – Barchart';
 const SCH_ST=['Not started','In progress','Completed','On hold'],DEF_FLOORS=['Ground Floor','First Floor','Second Floor'];
 const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],MNF=['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
 const dN=x=>x?Date.UTC(+x.slice(0,4),+x.slice(5,7)-1,+x.slice(8,10)):null;
