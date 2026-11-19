@@ -358,7 +358,7 @@ function rxa(){const D=attData(),wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,t.t.replace(/[\\\/?*\[\]:]/g,'').slice(0,31))});
  return dl('Star_Builders_Attendance_Report.xlsx',new Uint8Array(XLSX.write(wb,{type:'array',bookType:'xlsx'})))}
 /* ===================== CONSTRUCTION SCHEDULE (Schedule tab) ===================== */
-const PROJ='CMS School – Barchant';
+const SITE_TITLES={'CMS':'CMS School – Barchant'};const curSite=()=>cur().name,siteTitle=()=>SITE_TITLES[curSite()]||curSite();
 const SCH_ST=['Not started','In progress','Completed','On hold'],DEF_FLOORS=['Ground Floor','First Floor','Second Floor'];
 const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],MNF=['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
 const dN=x=>x?Date.UTC(+x.slice(0,4),+x.slice(5,7)-1,+x.slice(8,10)):null;
@@ -368,9 +368,10 @@ const fdw=x=>x?DAYN[new Date(dN(x)).getUTCDay()]+' '+fd(x):'';
 const fs3=x=>x.slice(8)+' '+MN[+x.slice(5,7)-1],fl3=x=>fs3(x)+' '+x.slice(0,4);
 const DEF_SCH=[["Earth Work", "2026-10-12", "2026-10-13", 0, "2026-10-12", "2026-10-13", "Completed", ""], ["PCC 1:4:8", "2026-10-14", "2026-10-16", 0, "2026-10-14", "2026-10-16", "Completed", ""], ["Bar Bending", "2026-10-15", "2026-10-16", 0, "2026-10-15", "", "In progress", ""], ["RCC Footing Concrete", "2026-10-17", "2026-10-18", 1, "", "", "Not started", ""], ["Pedestal Centering", "2026-10-19", "2026-10-20", 0, "", "", "Not started", ""], ["Pedestal RCC", "2026-10-20", "2026-10-21", 1, "", "", "Not started", ""], ["Plinth Beam Earthwork", "2026-10-22", "2026-10-23", 0, "", "", "Not started", ""], ["Plinth Beam PCC", "2026-10-23", "2026-10-24", 0, "", "", "Not started", ""], ["Plinth Beam Bar Bending", "2026-10-23", "2026-10-24", 0, "", "", "Not started", ""], ["Centering", "2026-10-24", "2026-10-26", 0, "", "", "Not started", ""], ["Concrete (Plinth Beam)", "2026-10-26", "2026-10-27", 1, "", "", "Not started", ""], ["Earth Filling & Levelling", "2026-10-28", "2026-10-31", 0, "", "", "Not started", ""], ["Super Structure Column", "2026-11-02", "2026-11-04", 0, "", "", "Not started", ""], ["RCC Concrete", "2026-11-03", "2026-11-05", 1, "", "", "Not started", ""], ["Brickwork – Sill Level", "2026-11-05", "2026-11-12", 0, "", "", "Not started", ""], ["Lintel Level", "2026-11-11", "2026-11-15", 0, "", "", "Not started", ""], ["Lintel Centering", "2026-11-15", "2026-11-17", 0, "", "", "Not started", ""], ["Bar Bending (Lintel)", "2026-11-16", "2026-11-18", 0, "", "", "Not started", ""], ["Lintel RCC", "2026-11-19", "2026-11-19", 1, "", "", "Not started", ""], ["Brickwork above Lintel", "2026-11-20", "2026-11-23", 0, "", "", "Not started", ""], ["Centering Roof", "2026-11-25", "2026-11-28", 0, "", "", "Not started", ""], ["Bar Bending (Roof)", "2026-11-27", "2026-11-29", 0, "", "", "Not started", ""], ["Roof Concrete", "2026-11-30", "2026-11-30", 1, "", "", "Not started", ""], ["Door and windows fixing", "2026-12-15", "2026-12-20", 0, "", "", "Not started", ""], ["Inner plaster", "2026-12-16", "2026-12-30", 0, "", "", "Not started", ""]];
 const schQ=()=>S.sch||(S.sch={floors:[],rows:[]});
-let SF='';const SD={},SO={},SC={};
-const schFloors=()=>[...new Set([...(schQ().floors||[]),...schQ().rows.map(r=>r.floor)])];
-const emptyDef=()=>DEF_FLOORS.filter(f=>!schQ().rows.some(r=>r.floor===f));
+let SF='';const SD={},SO={},SC={},SFm={};const scK=()=>curSite()+'|'+SF;
+const siteRows=()=>schQ().rows.filter(r=>r.site===curSite());
+const schFloors=()=>[...new Set([...(schQ().floors||[]).filter(f=>f&&f.site===curSite()).map(f=>f.name),...siteRows().map(r=>r.floor)])];
+const emptyDef=()=>DEF_FLOORS.filter(f=>!siteRows().some(r=>r.floor===f));
 const schSort=a=>a.slice().sort((x,y)=>x.seq-y.seq||x.id-y.id);
 const deriveSt=(a,e)=>e?'Completed':a?'In progress':'Not started';
 function syncSt(st,a,e){if(e)return'Completed';if(!SCH_ST.includes(st))return deriveSt(a,e);if(st==='Completed')return a?'In progress':'Not started';if(st==='Not started'&&a)return'In progress';return st}
@@ -379,7 +380,7 @@ function schDelay(r,td){td=td||today();if(r.ae)return Math.max(0,dDiff(r.ae,r.pe
 const stCol={Completed:'#2f9e44','In progress':'#1c64b8','On hold':'#b7791f','Not started':'#868e96'};
 const withD=r=>SD[r.id]?{...r,...SD[r.id]}:r;
 function schObs(){const td=today(),out=[];
- schFloors().forEach(f=>{const rs=schSort(schQ().rows.filter(r=>r.floor===f)).map(withD);if(!rs.length)return;
+ schFloors().forEach(f=>{const rs=schSort(siteRows().filter(r=>r.floor===f)).map(withD);if(!rs.length)return;
   const n=rs.length,sts=rs.map(stOf),done=sts.filter(x=>x==='Completed').length,run=sts.filter(x=>x==='In progress').length;
   const late=rs.map(r=>({r,d:schDelay(r,td),s:stOf(r)})).filter(x=>x.d>0&&x.s!=='Completed').sort((a,b)=>b.d-a.d);
   out.push('<b>'+esc(f)+'</b>: '+done+' of '+n+' activities completed ('+Math.round(done/n*100)+'%), '+run+' in progress'+(late.length?', <span class="out">'+late.length+' running late</span>':', none running late')+'.');
@@ -399,7 +400,7 @@ function schChart(rows,from,to,floor,td){
  const sc=Math.min(2,16000/W,16000/H,Math.sqrt(16e6/(W*H))),c=document.createElement('canvas');c.width=Math.round(W*sc);c.height=Math.round(H*sc);c.dataset.w=W;
  const g=c.getContext('2d');g.scale(sc,sc);const FN='"DejaVu Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif';
  g.fillStyle='#fff';g.fillRect(0,0,W,H);g.textBaseline='middle';
- g.textAlign='left';g.fillStyle='#000';g.font='bold 27px '+FN;g.fillText(PROJ+' : '+floor,X0,24);
+ g.textAlign='left';g.fillStyle='#000';g.font='bold 27px '+FN;g.fillText(siteTitle()+' : '+floor,X0,24);
  g.fillStyle='#444';g.font='17px '+FN;g.fillText(fl3(from)+' → '+fl3(to)+'  ·  each block = one day  ·  green = concrete work',X0,64);
  const COL={p:['#b9d3f0','#7aa3d6'],a:['#2f7ec6','#1f5c96'],pc:['#b2e2bb','#7cc08a'],ac:['#2ca24c','#1c7a36']};
  let lx=X0+14;[['p','Planned'],['a','Actual'],['pc','Planned concrete'],['ac','Actual concrete'],['late','Red text = late']].forEach(([k,t])=>{
@@ -426,11 +427,11 @@ function schChart(rows,from,to,floor,td){
  g.fillStyle='#111';g.font='16px '+FN;g.textAlign='center';
  for(let k=0;k<nd;k++){const d=addD(from,k),x=X0+(k+.5)*DW,by=TOPY+plotH;g.fillText(String(+d.slice(8)),x,by+20);g.fillText(DAYN[new Date(dN(d)).getUTCDay()],x,by+39);if(k===0||d.slice(8)==='01')g.fillText(MN[+d.slice(5,7)-1],x,by+58)}
  return c}
-function schWin(rows,td){const sp=SC[SF]||(SC[SF]={span:21,from:null,full:innerWidth<700});if(!rows.length)return{sp,from:td,to:td};
+function schWin(rows,td){const sp=SC[scK()]||(SC[scK()]={span:21,from:null,full:innerWidth<700});if(!rows.length)return{sp,from:td,to:td};
  const first=rows.reduce((m,r)=>r.ps<m?r.ps:m,rows[0].ps),last=rows.reduce((m,r)=>{const e=[r.pe,r.ae||r.as||r.pe].sort().pop();return e>m?e:m},rows[0].pe);
  if(!sp.span)return{sp,from:first,to:last};
  if(!sp.from)sp.from=[[addD(td,-3),first].sort().pop(),[addD(last,-(sp.span-1)),first].sort().pop()].sort()[0];return{sp,from:sp.from,to:addD(sp.from,sp.span-1)}}
-function chartHtml(){const sp=SC[SF]||(SC[SF]={span:21,from:null,full:innerWidth<700});
+function chartHtml(){const sp=SC[scK()]||(SC[scK()]={span:21,from:null,full:innerWidth<700});
  return '<details class="sec" open><summary><b>📊 Planned vs actual chart</b></summary><div class="mu" style="margin:6px 0">Light blocks = planned, solid blocks = actual. Each block is one day. Green = concrete work. Red text = late. Choose how many days to show and move forward or back.</div><div class="seg" id="s_sp" style="flex-wrap:wrap;margin-bottom:8px">'+[14,21,28,42,0].map(k=>'<button data-sp="'+k+'" class="'+(sp.span===k?'on':'')+'">'+(k?k+' days':'Whole floor')+'</button>').join('')+'</div>'
   +(sp.span?'<div class="two" style="align-items:end"><div class="acts" style="margin:0"><button id="s_pv">◀ Earlier</button><button id="s_nx">Later ▶</button></div><div><label>Show from</label><input type="date" id="s_fr"></div></div>':'')
   +'<div id="s_cv" style="margin-top:10px;border:1px solid var(--bd);border-radius:10px;background:#fff;overflow-x:auto"></div><div class="acts"><button id="s_fs">'+(sp.full?'↔ Fit to screen':'↔ Full size')+'</button><button id="s_im" class="p">🖼 Download chart as image</button></div></details>'}
@@ -439,17 +440,17 @@ function chartBind(rows){const td=today(),{sp,from,to}=schWin(rows,td),box=$('s_
  $('s_sp').onclick=e=>{const b=e.target.closest('button');if(b){sp.span=+b.dataset.sp;sp.from=null;schView()}};
  if(sp.span){$('s_pv').onclick=()=>{sp.from=addD(sp.from,-sp.span);schView()};$('s_nx').onclick=()=>{sp.from=addD(sp.from,sp.span);schView()};$('s_fr').value=sp.from;$('s_fr').onchange=e=>{if(e.target.value){sp.from=e.target.value;schView()}}}
  $('s_fs').onclick=()=>{sp.full=!sp.full;schView()};
- $('s_im').onclick=()=>{if(!cv){alert('Nothing to draw in these dates.');return}cv.toBlob(b=>dl('Star_Builders_'+SF.replace(/[^A-Za-z0-9]+/g,'_')+'_schedule_chart.png',b),'image/png')}}
+ $('s_im').onclick=()=>{if(!cv){alert('Nothing to draw in these dates.');return}cv.toBlob(b=>dl('Star_Builders_'+(curSite()+'_'+SF).replace(/[^A-Za-z0-9]+/g,'_')+'_schedule_chart.png',b),'image/png')}}
 /* ---------- the Schedule tab ---------- */
 function schBar(){const n=Object.keys(SD).length,show=n&&TAB===4;$('schbar').style.display=show?'flex':'none';if(show)$('sb_msg').textContent=n+' change'+(n>1?'s':'')+' not saved yet – fix the dates, then press Save'}
-function schView(){const fl=schFloors();if(!SF||!fl.includes(SF))SF=fl[0]||'';const td=today(),all=schSort(schQ().rows.filter(r=>r.floor===SF)),rs=all.map(withD);
- let h='<div class="mu" style="margin:0 0 8px">Planned dates come from the plan. <b>Actual Start, Actual End and Status</b> are for you to enter – put the start date on the day work starts, and the end date whenever it finishes (it can be filled in later). Add a remark when an activity is delayed.</div>';
+function schView(){const fl=schFloors();SF=(SFm[curSite()]&&fl.includes(SFm[curSite()]))?SFm[curSite()]:(fl[0]||'');SFm[curSite()]=SF;const td=today(),all=schSort(siteRows().filter(r=>r.floor===SF)),rs=all.map(withD);
+ let h='<div class="mu" style="margin:0 0 8px"><b>Site: '+esc(curSite())+'</b> – construction schedule. Planned dates come from the plan. <b>Actual Start, Actual End and Status</b> are for you to enter – put the start date on the day work starts, and the end date whenever it finishes (it can be filled in later). Add a remark when an activity is delayed.</div>';
  h+='<details class="sec" open><summary><h2 style="display:inline">🧰 Site engineer\'s observations</h2></summary><div style="font-size:14px;margin-top:6px">'+schObs()+'</div></details>';
- const ef=emptyDef(),hid=(()=>{try{return localStorage.getItem('sb_def_hide')}catch(e){return''}})();
- if(ADMIN&&ef.length&&!hid)h+='<div class="sec"><h2>Start here</h2><div class="mu" style="margin-bottom:8px">Load the '+DEF_SCH.length+'-activity schedule (Earth Work … Inner plaster) into: <b>'+ef.map(esc).join(', ')+'</b>. Planned dates are the same for every floor; the Ground Floor also keeps the progress already recorded.</div><button class="p" id="sch_def" style="width:100%">Load the schedule into '+(ef.length>1?'all '+ef.length+' floors':ef[0])+'</button><button id="sch_nd" style="width:100%;margin-top:8px">Not now</button></div>';
+ const ef=emptyDef(),hid=(()=>{try{return localStorage.getItem('sb_def_hide_'+curSite())}catch(e){return''}})();
+ if(ADMIN&&ef.length&&!hid)h+='<div class="sec"><h2>Start here</h2><div class="mu" style="margin-bottom:8px">Load the '+DEF_SCH.length+'-activity schedule (Earth Work … Inner plaster) into these floors of <b>'+esc(curSite())+'</b>: <b>'+ef.map(esc).join(', ')+'</b>. Only the planned dates are loaded'+(curSite()==='CMS'?'; the Ground Floor also keeps the progress already recorded':'; no progress is copied')+'. You can change or remove any activity afterwards.</div><button class="p" id="sch_def" style="width:100%">Load the schedule into '+(ef.length>1?'all '+ef.length+' floors':ef[0])+'</button><button id="sch_nd" style="width:100%;margin-top:8px">Not now</button></div>';
  if(fl.length){h+='<div class="seg" id="s_fl" style="margin-bottom:8px;flex-wrap:wrap">'+fl.map(f=>'<button data-f="'+esc(f)+'" class="'+(f===SF?'on':'')+'">'+esc(f)+'</button>').join('')+'</div>'}
  if(ADMIN)h+='<div class="acts" style="margin-bottom:10px"><button id="sch_fa">＋ Add floor</button>'+(fl.length?'<button id="sch_fr">✎ Rename</button><button id="sch_fd" style="color:var(--rd)">🗑 Remove floor</button>':'')+'</div>';
- if(!fl.length)h+='<div class="mu" style="text-align:center;padding:24px 8px">No floors have been set up yet.'+(ADMIN?'':'<br>The admin can add floors and activities here.')+'</div>';
+ if(!fl.length)h+='<div class="mu" style="text-align:center;padding:24px 8px">No floors have been set up for <b>'+esc(curSite())+'</b> yet.'+(ADMIN?'':'<br>The admin can add floors and activities here.')+'</div>';
  else{
   h+=cardsHtml(rs);
   if(rs.length){const f0=rs.reduce((m,r)=>r.ps<m?r.ps:m,rs[0].ps),e0=rs.reduce((m,r)=>r.pe>m?r.pe:m,rs[0].pe);h+='<div class="mu" style="margin-bottom:10px"><b>Planned:</b> '+fdw(f0)+' → '+fdw(e0)+' &nbsp;·&nbsp; 🟩 = concrete work</div>'}
@@ -467,19 +468,19 @@ function schView(){const fl=schFloors();if(!SF||!fl.includes(SF))SF=fl[0]||'';co
    h+='<div class="acts"><button id="sch_imp">⬆ Import schedule (CSV / Excel)</button></div>'}
   if(rs.length)h+='<div class="acts"><button class="p" id="sch_x1">⬇ Download as Excel</button><button id="sch_xa">⬇ All floors (Excel)</button></div><div class="acts"><button id="sch_csv">⬇ Download as CSV</button></div>'}
  $('v4').innerHTML=h;schBar();
- if($('s_fl'))$('s_fl').onclick=e=>{const b=e.target.closest('button');if(b){SF=b.dataset.f;schView()}};
- if($('sch_nd'))$('sch_nd').onclick=()=>{try{localStorage.setItem('sb_def_hide','1')}catch(e){}schView()};
+ if($('s_fl'))$('s_fl').onclick=e=>{const b=e.target.closest('button');if(b){SF=b.dataset.f;SFm[curSite()]=SF;schView()}};
+ if($('sch_nd'))$('sch_nd').onclick=()=>{try{localStorage.setItem('sb_def_hide_'+curSite(),'1')}catch(e){}schView()};
  if($('sch_def'))$('sch_def').onclick=()=>{const e2=emptyDef();if(!confirm('Load the '+DEF_SCH.length+' activities into '+e2.join(', ')+'?'))return;
-  e2.forEach(f=>{if(!schFloors().includes(f))mutate({t:'schFloorAdd',name:f});mutate({t:'schImport',floor:f,replace:false,rows:DEF_SCH.map((a,i)=>f==='Ground Floor'?{id:newId(),seq:i+1,name:a[0],ps:a[1],pe:a[2],conc:!!a[3],as:a[4],ae:a[5],st:a[6],rm:a[7]}:{id:newId(),seq:i+1,name:a[0],ps:a[1],pe:a[2],conc:!!a[3],as:'',ae:'',st:'Not started',rm:''})})});SF=e2[0];toast('Schedule loaded into '+e2.length+' floor'+(e2.length>1?'s':''))};
- if($('sch_fa'))$('sch_fa').onclick=()=>{const v=(prompt('Name of the new floor')||'').trim();if(v&&!schFloors().some(x=>x.toLowerCase()===v.toLowerCase())){mutate({t:'schFloorAdd',name:v});SF=v;schView()}};
- if($('sch_fr'))$('sch_fr').onclick=()=>{const v=(prompt('Rename "'+SF+'" to',SF)||'').trim();if(v&&v!==SF&&!schFloors().some(x=>x.toLowerCase()===v.toLowerCase())){const o=SF;SF=v;mutate({t:'schFloorRen',from:o,to:v})}};
- if($('sch_fd'))$('sch_fd').onclick=()=>{if(confirm('Remove the floor "'+SF+'" and all its '+rs.length+' activities?\nThis cannot be undone.')){const o=SF;SF='';mutate({t:'schFloorDel',name:o})}};
+  e2.forEach(f=>{if(!schFloors().includes(f))mutate({t:'schFloorAdd',site:curSite(),name:f});mutate({t:'schImport',site:curSite(),floor:f,replace:false,rows:DEF_SCH.map((a,i)=>(f==='Ground Floor'&&curSite()==='CMS')?{id:newId(),seq:i+1,name:a[0],ps:a[1],pe:a[2],conc:!!a[3],as:a[4],ae:a[5],st:a[6],rm:a[7]}:{id:newId(),seq:i+1,name:a[0],ps:a[1],pe:a[2],conc:!!a[3],as:'',ae:'',st:'Not started',rm:''})})});SF=e2[0];toast('Schedule loaded into '+e2.length+' floor'+(e2.length>1?'s':''))};
+ if($('sch_fa'))$('sch_fa').onclick=()=>{const v=(prompt('Name of the new floor')||'').trim();if(v&&!schFloors().some(x=>x.toLowerCase()===v.toLowerCase())){mutate({t:'schFloorAdd',site:curSite(),name:v});SF=v;SFm[curSite()]=v;schView()}};
+ if($('sch_fr'))$('sch_fr').onclick=()=>{const v=(prompt('Rename "'+SF+'" to',SF)||'').trim();if(v&&v!==SF&&!schFloors().some(x=>x.toLowerCase()===v.toLowerCase())){const o=SF;SF=v;SFm[curSite()]=v;mutate({t:'schFloorRen',site:curSite(),from:o,to:v})}};
+ if($('sch_fd'))$('sch_fd').onclick=()=>{if(confirm('Remove the floor "'+SF+'" and all its '+rs.length+' activities?\nThis cannot be undone.')){const o=SF;SF='';SFm[curSite()]='';mutate({t:'schFloorDel',site:curSite(),name:o})}};
  if($('sa_add'))$('sa_add').onclick=()=>{const nm=$('sa_nm').value.trim(),ps=$('sa_ps').value,pe=$('sa_pe').value;if(!nm){alert('Enter the activity name.');return}if(!ps||!pe){alert('Enter the planned start and end dates.');return}if(pe<ps){alert('Planned end cannot be before planned start.');return}
   const k=all.findIndex(r=>r.ps>ps||(r.ps===ps&&r.pe>pe)),seq=k<0?(all.length?all[all.length-1].seq+1:1):k===0?all[0].seq-1:Math.round((all[k-1].seq+all[k].seq)/2*1e6)/1e6;
-  mutate({t:'schPut',row:{id:newId(),floor:SF,seq,name:nm,ps,pe,conc:$('sa_cc').checked,as:'',ae:'',st:'Not started',rm:''}});toast('Added: '+nm)};
+  mutate({t:'schPut',row:{id:newId(),site:curSite(),floor:SF,seq,name:nm,ps,pe,conc:$('sa_cc').checked,as:'',ae:'',st:'Not started',rm:''}});toast('Added: '+nm)};
  if($('sa_pick')){const upd=()=>{$('sa_rm').disabled=!($('sa_sure').checked&&$('sa_pick').value)};$('sa_pick').onchange=upd;$('sa_sure').onchange=upd;
   $('sa_rm').onclick=()=>{const id=+$('sa_pick').value;if(id){delete SD[id];mutate({t:'schDel',id});toast('Activity removed')}}}
- if($('sch_rp'))$('sch_rp').onclick=()=>{const v=$('sch_ns').value,f0=rs.reduce((m,r)=>r.ps<m?r.ps:m,rs[0].ps),dd=v?dDiff(v,f0):0;if(!dd){alert('Choose a different planned start date.');return}if(confirm('Move every planned date of '+SF+' by '+dd+' day(s)?'))mutate({t:'schReplan',floor:SF,days:dd})};
+ if($('sch_rp'))$('sch_rp').onclick=()=>{const v=$('sch_ns').value,f0=rs.reduce((m,r)=>r.ps<m?r.ps:m,rs[0].ps),dd=v?dDiff(v,f0):0;if(!dd){alert('Choose a different planned start date.');return}if(confirm('Move every planned date of '+SF+' by '+dd+' day(s)?'))mutate({t:'schReplan',site:curSite(),floor:SF,days:dd})};
  if($('sch_imp'))$('sch_imp').onclick=()=>$('sch_fi').click();
  if($('sch_x1'))$('sch_x1').onclick=()=>schXlsx([SF]);if($('sch_xa'))$('sch_xa').onclick=()=>schXlsx(schFloors());if($('sch_csv'))$('sch_csv').onclick=()=>schCsv(all.map(withD));
  if(rs.length)chartBind(rs)}
@@ -489,7 +490,7 @@ function schLive(card){const id=+card.dataset.id,r=schQ().rows.find(x=>x.id==id)
  if(same)delete SD[id];else SD[id]=cur;const x={...r,...cur},d=schDelay(x),b=card.querySelector('.stb');
  b.textContent=st;b.style.color=b.style.borderColor=stCol[st];card.querySelector('.dly').textContent=d>0?'Delayed '+d+' day'+(d>1?'s':''):'';card.querySelector('.dot').textContent=same?'':' ●';card.querySelector('.act').textContent='Actual: '+(a?fdw(a):'—')+' → '+(e?fdw(e):'—');
  card.querySelector('.err').textContent=a&&e&&e<a?'Actual End is before Actual Start.':'';
- const td=today(),need=schSort(schQ().rows.filter(q=>q.floor===SF)).map(withD).filter(q=>schDelay(q,td)>0&&stOf(q)!=='On hold'&&!(q.rm||'').trim());
+ const td=today(),need=schSort(siteRows().filter(q=>q.floor===SF)).map(withD).filter(q=>schDelay(q,td)>0&&stOf(q)!=='On hold'&&!(q.rm||'').trim());
  $('sch_need').innerHTML=need.length?'<div class="sec" style="border-color:var(--rd)"><b class="out">Delayed – don\'t forget to add a remark for:</b> '+need.map(q=>esc(q.name)).join(', ')+'</div>':'';schBar()}
 $('v4').addEventListener('input',e=>{const c=e.target.closest('.sc');if(c&&e.target.dataset.k)schLive(c)});
 $('v4').addEventListener('change',e=>{const c=e.target.closest('.sc');if(c&&e.target.dataset.k){schLive(c);schAuto(+c.dataset.id)}});
@@ -513,16 +514,16 @@ $('sb_sv').onclick=()=>{const bad=[];Object.keys(SD).forEach(id=>{const v=SD[id]
 function schCsv(rs){const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"',td=today();
  const lines=[['#','Activity','Planned Start','Planned End','Actual Start','Actual End','Status','Delay (days)','Remarks'].map(q).join(',')];
  rs.forEach((r,i)=>lines.push([i+1,(r.conc?'🟩 ':'')+r.name,r.ps,r.pe,r.as||'',r.ae||'',stOf(r),schDelay(r,td),r.rm||''].map(q).join(',')));
- dl(SF.replace(/\s+/g,'_')+'_schedule.csv',new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv'}))}
+ dl((curSite()+'_'+SF).replace(/\s+/g,'_')+'_schedule.csv',new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv'}))}
 function schXlsx(floors){const wb=XLSX.utils.book_new(),td=today();let any=false;
- floors.forEach(f=>{const rs=schSort(schQ().rows.filter(r=>r.floor===f));if(!rs.length)return;any=true;
+ floors.forEach(f=>{const rs=schSort(siteRows().filter(r=>r.floor===f));if(!rs.length)return;any=true;
   const cv=v=>v?xs(+v.slice(0,4),+v.slice(5,7),+v.slice(8,10)):'',head=['#','Activity','Planned Start','Planned End','Actual Start','Actual End','Status','Delay (days)','Remarks'];
   const aoa=[head,...rs.map((r,i)=>[i+1,(r.conc?'🟩 ':'')+r.name,cv(r.ps),cv(r.pe),cv(r.as),cv(r.ae),stOf(r),schDelay(r,td),r.rm||''])],ws=XLSX.utils.aoa_to_sheet(aoa);
   ws['!cols']=[{wch:5},{wch:32},{wch:14},{wch:14},{wch:14},{wch:14},{wch:13},{wch:12},{wch:40}];
   aoa.forEach((r,ri)=>{if(ri)[2,3,4,5].forEach(ci=>{const c=ws[XLSX.utils.encode_cell({r:ri,c:ci})];if(c&&c.t==='n')c.z='dd-mmm-yyyy'})});
   XLSX.utils.book_append_sheet(wb,ws,f.replace(/[\\\/?*\[\]:]/g,'').slice(0,31))});
  if(!any){alert('There is no schedule to download yet.');return}
- return dl(floors.length===1?floors[0].replace(/\s+/g,'_')+'_schedule.xlsx':'Star_Builders_Schedule.xlsx',new Uint8Array(XLSX.write(wb,{type:'array',bookType:'xlsx'})))}
+ return dl(floors.length===1?(curSite()+'_'+floors[0]).replace(/\s+/g,'_')+'_schedule.xlsx':'Star_Builders_'+curSite().replace(/\s+/g,'_')+'_Schedule.xlsx',new Uint8Array(XLSX.write(wb,{type:'array',bookType:'xlsx'})))}
 /* ---------- edit name / planned dates (admin) ---------- */
 let spEdit=null;
 function spOpen(id){const r=schQ().rows.find(x=>x.id==id);if(!r)return;spEdit=id;$('sp_t').textContent='Edit activity';$('sp_fl').textContent='Floor: '+r.floor;$('sp_nm').value=r.name;$('sp_ps').value=r.ps;$('sp_pe').value=r.pe;$('sp_cc').checked=!!r.conc;$('spdlg').showModal()}
@@ -548,8 +549,8 @@ $('sch_fi').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f
   if(!rows.length){alert('No valid activities found (check the planned dates).');return}
   if(!SF){alert('Add a floor first, then import into it.');return}
   if(!confirm('Import '+rows.length+' activities into "'+SF+'"'+(bad?' ('+bad+' rows skipped – bad dates)':'')+'?'))return;
-  const ex=schQ().rows.filter(r=>r.floor===SF).length,rep=ex?confirm('This floor already has '+ex+' activities.\n\nOK = replace them with the imported ones\nCancel = keep them and add the imported ones'):false;
-  mutate({t:'schImport',floor:SF,replace:rep,rows});toast('Imported '+rows.length+' activities')}catch(x){alert('Could not read this file: '+x.message)}};
+  const ex=siteRows().filter(r=>r.floor===SF).length,rep=ex?confirm('This floor already has '+ex+' activities.\n\nOK = replace them with the imported ones\nCancel = keep them and add the imported ones'):false;
+  mutate({t:'schImport',site:curSite(),floor:SF,replace:rep,rows});toast('Imported '+rows.length+' activities')}catch(x){alert('Could not read this file: '+x.message)}};
 
 // menu
 $('mn').onclick=()=>$('mdl').showModal();
@@ -622,27 +623,27 @@ function applyOp(st,op){
  if(op.t==='put')put(site(op.site),op.row);
  else if(op.t==='del')st.sites.forEach(s=>{s.rows=s.rows.filter(x=>x.id!=op.id)});
  else if(op.t==='addSite'){if(si_(st,op.name)<0)st.sites.push({name:op.name,rows:[],att:[]})}
- else if(op.t==='renSite'){const i=si_(st,op.from);if(i>=0&&si_(st,op.to)<0)st.sites[i].name=op.to}
- else if(op.t==='delSite'){const i=si_(st,op.name);if(i>=0&&st.sites.length>1)st.sites.splice(i,1)}
+ else if(op.t==='renSite'){const i=si_(st,op.from);if(i>=0&&si_(st,op.to)<0){st.sites[i].name=op.to;const q=st.sch;if(q){q.rows.forEach(r=>{if(r.site===op.from)r.site=op.to});(q.floors||[]).forEach(f=>{if(f&&f.site===op.from)f.site=op.to})}}}
+ else if(op.t==='delSite'){const i=si_(st,op.name);if(i>=0&&st.sites.length>1){st.sites.splice(i,1);const q=st.sch;if(q){q.rows=q.rows.filter(r=>r.site!==op.name);q.floors=(q.floors||[]).filter(f=>!f||f.site!==op.name)}}}
  else if(op.t==='bulk'||op.t==='seed')op.sites.forEach(x=>{const s=site(x.name);x.rows.forEach(r=>put(s,r));(x.att||[]).forEach(a=>putA(s,a))})
  else if(op.t==='attPut')putA(site(op.site),op.row)
  else if(op.t==='attDel')st.sites.forEach(s=>{s.att=(s.att||[]).filter(x=>x.id!=op.id)})
  else if(op.t==='rate'){st.rates=st.rates||{};if(+op.amt>0)st.rates[op.lab]=+op.amt;else delete st.rates[op.lab]}
- else if(op.t.startsWith('sch')){const q=st.sch||(st.sch={floors:[],rows:[]});q.floors=q.floors||[];const fl=n=>{if(!q.floors.includes(n))q.floors.push(n)};
-  if(op.t==='schPut'){const r=op.row,j=q.rows.findIndex(x=>x.id==r.id);if(j>=0)q.rows[j]={...q.rows[j],as:r.as,ae:r.ae,st:r.st,rm:r.rm};else{fl(r.floor);q.rows.push({...r})}}
+ else if(op.t.startsWith('sch')){const q=st.sch||(st.sch={floors:[],rows:[]});q.floors=(q.floors||[]).filter(f=>f&&typeof f==='object');const fl=(s,n)=>{if(!q.floors.some(f=>f.site===s&&f.name===n))q.floors.push({site:s,name:n})};
+  if(op.t==='schPut'){const r=op.row,j=q.rows.findIndex(x=>x.id==r.id);if(j>=0)q.rows[j]={...q.rows[j],as:r.as,ae:r.ae,st:r.st,rm:r.rm};else{fl(r.site,r.floor);q.rows.push({...r})}}
   else if(op.t==='schPlan'){const j=q.rows.findIndex(x=>x.id==op.row.id);if(j>=0)q.rows[j]={...q.rows[j],name:op.row.name,ps:op.row.ps,pe:op.row.pe,conc:op.row.conc}}
   else if(op.t==='schDel')q.rows=q.rows.filter(x=>x.id!=op.id);
-  else if(op.t==='schFloorAdd')fl(op.name);
-  else if(op.t==='schFloorRen'){q.floors=q.floors.map(f=>f===op.from?op.to:f);q.rows.forEach(r=>{if(r.floor===op.from)r.floor=op.to})}
-  else if(op.t==='schFloorDel'){q.floors=q.floors.filter(f=>f!==op.name);q.rows=q.rows.filter(r=>r.floor!==op.name)}
-  else if(op.t==='schReplan')q.rows.forEach(r=>{if(r.floor===op.floor){r.ps=addD(r.ps,op.days);r.pe=addD(r.pe,op.days)}});
-  else if(op.t==='schImport'){if(op.replace)q.rows=q.rows.filter(r=>r.floor!==op.floor);fl(op.floor);op.rows.forEach(r=>q.rows.push({...r,floor:op.floor}))}}}
+  else if(op.t==='schFloorAdd')fl(op.site,op.name);
+  else if(op.t==='schFloorRen'){q.floors.forEach(f=>{if(f.site===op.site&&f.name===op.from)f.name=op.to});q.rows.forEach(r=>{if(r.site===op.site&&r.floor===op.from)r.floor=op.to})}
+  else if(op.t==='schFloorDel'){q.floors=q.floors.filter(f=>!(f.site===op.site&&f.name===op.name));q.rows=q.rows.filter(r=>!(r.site===op.site&&r.floor===op.name))}
+  else if(op.t==='schReplan')q.rows.forEach(r=>{if(r.site===op.site&&r.floor===op.floor){r.ps=addD(r.ps,op.days);r.pe=addD(r.pe,op.days)}});
+  else if(op.t==='schImport'){if(op.replace)q.rows=q.rows.filter(r=>!(r.site===op.site&&r.floor===op.floor));fl(op.site,op.floor);op.rows.forEach(r=>q.rows.push({...r,site:op.site,floor:op.floor}))}}}
 function setSt(){const e=$('sync');if(!ONLINE||!PW){e.textContent='';return}
  e.textContent=QUEUE.length?(OFFLINE?'⚠ Offline – '+QUEUE.length+' waiting to upload':'⟳ Saving…'):OFFLINE?'⚠ Offline – showing saved copy':'● Synced '+new Date(LASTOK||Date.now()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
  e.style.color=OFFLINE?'var(--rd)':'var(--ac)'}
 async function call(b,pw){const r=await fetch(API,{method:'POST',body:JSON.stringify({pw:pw===undefined?PW:pw,...b})});return await r.json()}
 function install(data){const nm=S.sites[S.cur]&&S.sites[S.cur].name;
- const st={cur:0,sch:{floors:[...((data.sch&&data.sch.floors)||[])],rows:((data.sch&&data.sch.rows)||[]).map(r=>({...r}))},rates:{...(data.rates||{})},sites:data.sites.map(s=>({name:s.name,rows:s.rows.map(r=>({...r})),att:(s.att||[]).map(a=>({...a}))}))};
+ const st={cur:0,sch:{floors:((data.sch&&data.sch.floors)||[]).map(f=>({...f})),rows:((data.sch&&data.sch.rows)||[]).map(r=>({...r}))},rates:{...(data.rates||{})},sites:data.sites.map(s=>({name:s.name,rows:s.rows.map(r=>({...r})),att:(s.att||[]).map(a=>({...a}))}))};
  QUEUE.forEach(o=>applyOp(st,o));st.sites.forEach(s=>s.rows.forEach(r=>{r.cat=normCat(r.cat);(r.br||[]).forEach(l=>{l.cat=normCat(l.cat)})}));if(!st.sites.length)st.sites=[{name:'New site',rows:[],att:[]}];
  const i=nm?si_(st,nm):-1;st.cur=i<0?0:i;S=st;save();render()}
 function mutate(op){applyOp(S,op);save();if(ONLINE){QUEUE.push(op);saveQ();setSt();flush()}render()}
